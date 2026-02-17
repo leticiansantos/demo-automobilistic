@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Databricks – Dashboard & Genie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4d;
+      --text: #e6edf3;
+      --text-muted: #8b9cb3;
+      --accent: #0d9488;
+      --accent-hover: #14b8a6;
+      --nav-height: 56px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav {
+      height: var(--nav-height);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+      margin-right: 32px;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-item a {
+      display: block;
+      padding: 10px 18px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-item a:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-item a.active {
+      color: var(--accent);
+      background: rgba(13, 148, 136, 0.15);
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .panel {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      padding: 0;
+    }
+
+    .panel.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel iframe {
+      flex: 1;
+      width: 100%;
+      min-height: 400px;
+      border: none;
+      background: var(--surface);
+    }
+
+    .panel-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      color: var(--text-muted);
+      padding: 48px;
+      text-align: center;
+    }
+
+    .panel-placeholder h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .panel-placeholder p {
+      max-width: 420px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .panel-placeholder code {
+      display: block;
+      text-align: left;
+      background: var(--bg);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--accent);
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">Databricks</span>
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="#dashboard" data-panel="dashboard" class="active">Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a href="#genie" data-panel="genie">Genie</a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <section id="panel-dashboard" class="panel active">
+      <iframe
+        id="iframe-dashboard"
+        src="https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/embed/dashboardsv3/01f10ba524f812a89e46d866f761bbe3?o=7474651027276549"
+        title="Databricks Dashboard"
+        width="100%"
+        height="600"
+        frameborder="0">
+      </iframe>
+      <!-- If you prefer a placeholder until you have the URL, use the div below instead of the iframe above:
+      <div class="panel-placeholder">
+        <h2>Dashboard</h2>
+        <p>Paste your dashboard embed URL in <code>index.html</code> (iframe with id="iframe-dashboard"). In Databricks: open the dashboard → Share → Embed dashboard.</p>
+      </div>
+      -->
+    </section>
+
+    <section id="panel-genie" class="panel">
+      <!-- Replace the src below with your Genie space embed URL from Databricks:
+           Open your Genie space → Share → Embed (if available). Otherwise use the Genie API for custom integration. -->
+      <iframe
+        id="iframe-genie"
+        src="https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/genie/rooms/01f10ba1cf701a72be55d82980a77668?o=7474651027276549"
+        
+        title="Databricks Genie"
+      ></iframe>
+      <!-- If Genie embed URL is different or not yet available, use the placeholder:
+      <div class="panel-placeholder">
+        <h2>Genie</h2>
+        <p>Paste your Genie embed URL in <code>index.html</code> (iframe with id="iframe-genie"). Get it from your Genie space → Share → Embed, or use the Genie Conversation API for a custom UI.</p>
+      </div>
+      -->
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const navLinks = document.querySelectorAll('.nav-item a[data-panel]');
+      const panels = document.querySelectorAll('.panel');
+
+      function switchPanel(panelId) {
+        panels.forEach(function (p) {
+          p.classList.toggle('active', p.id === 'panel-' + panelId);
+        });
+        navLinks.forEach(function (a) {
+          a.classList.toggle('active', a.getAttribute('data-panel') === panelId);
+        });
+        history.replaceState(null, '', '#' + panelId);
+      }
+
+      navLinks.forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          switchPanel(a.getAttribute('data-panel'));
+        });
+      });
+
+      var hash = (location.hash || '#dashboard').slice(1);
+      if (hash === 'genie' || hash === 'dashboard') {
+        switchPanel(hash);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "version": "v1",
+  "host": "https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com",
+  "remote_path": "/Workspace/Users/leticia.santos@databricks.com/testapp",
+  "last_modified_times": {
+    ".gitignore": "2026-02-17T09:47:21.260882766-03:00",
+    "README.md": "2026-02-17T09:56:22.589449965-03:00",
+    "index.html": "2026-02-17T09:59:40.579094649-03:00"
+  },
+  "local_to_remote_names": {
+    ".gitignore": ".gitignore",
+    "README.md": "README.md",
+    "index.html": "index.html"
+  },
+  "remote_to_local_names": {
+    ".gitignore": ".gitignore",
+    "README.md": "README.md",
+    "index.html": "index.html"
+  }
+}
