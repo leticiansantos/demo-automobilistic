@@ -1,0 +1,7 @@
+# app.yaml
+command: ["python3", "-m", "http.server", "8080"]
+
+# Optional: environment variables
+env:
+  - name: PORT
+    value: "8080"
