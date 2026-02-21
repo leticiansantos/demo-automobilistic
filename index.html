@@ -80,6 +80,49 @@
       background: rgba(13, 148, 136, 0.15);
     }
 
+    .top-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .welcome-msg {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .welcome-msg strong {
+      color: var(--text);
+    }
+
+    .top-bar .driver-id-search {
+      margin-bottom: 0;
+    }
+
+    .top-bar .driver-id-search label {
+      color: var(--text-muted);
+    }
+
+    .top-bar .driver-id-search input {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .top-bar .driver-id-search input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
+    .top-bar.visible {
+      display: flex;
+    }
+
     .main {
       flex: 1;
       display: flex;
@@ -168,6 +211,56 @@
       font-size: 0.9rem;
       color: #555;
       margin-bottom: 12px;
+    }
+
+    .driver-id-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .driver-id-search label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .driver-id-search input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      min-width: 180px;
+      font-family: inherit;
+    }
+
+    .driver-id-search input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+    }
+
+    .driver-id-search .btn-search {
+      padding: 8px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .driver-id-search .btn-search:hover {
+      background: var(--accent-hover);
+    }
+
+    .driver-id-search .btn-search:active {
+      transform: scale(0.98);
     }
 
     .drive-safety-flag {
@@ -392,6 +485,15 @@
     </ul>
   </nav>
 
+  <div id="top-bar" class="top-bar">
+    <p class="welcome-msg">Bem-vindo, <strong id="welcome-name">Nome da Pessoa</strong></p>
+    <div class="driver-id-search">
+      <label for="driver-id-input">ID do Motorista</label>
+      <input type="text" id="driver-id-input" placeholder="Digite o ID do motorista para pesquisar na tabela" autocomplete="off">
+      <button type="button" id="driver-search-btn" class="btn-search">Pesquisar</button>
+    </div>
+  </div>
+
   <main class="main">
     <section id="panel-dashboard" class="panel active">
       <iframe
@@ -490,6 +592,8 @@
         navLinks.forEach(function (a) {
           a.classList.toggle('active', a.getAttribute('data-panel') === panelId);
         });
+        var topBar = document.getElementById('top-bar');
+        if (topBar) topBar.classList.toggle('visible', panelId === 'motorista');
         history.replaceState(null, '', '#' + panelId);
       }
 
@@ -706,6 +810,42 @@
       renderCarPoints();
       renderTable();
       updateDriveSafetyFlag();
+
+      window.getDriverIdForSearch = function () {
+        var el = document.getElementById("driver-id-input");
+        return el ? el.value.trim() : "";
+      };
+
+      window.setWelcomeUserName = function (name) {
+        var el = document.getElementById("welcome-name");
+        if (el) el.textContent = name != null && name !== "" ? String(name) : "Nome da Pessoa";
+      };
+
+      document.getElementById("driver-id-input").addEventListener("input", function () {
+        if (window.onDriverIdSearchChange) window.onDriverIdSearchChange(window.getDriverIdForSearch());
+      });
+
+      function triggerDriverSearch() {
+        var id = window.getDriverIdForSearch();
+        if (window.onDriverSearch) {
+          window.onDriverSearch(id);
+        } else if (window.onDriverIdSearchChange) {
+          window.onDriverIdSearchChange(id);
+        }
+        try {
+          window.dispatchEvent(new CustomEvent("driverSearchRequested", { detail: { driverId: id } }));
+        } catch (e) {}
+      }
+
+      document.getElementById("driver-search-btn").addEventListener("click", function () {
+        triggerDriverSearch();
+      });
+
+      document.getElementById("driver-id-input").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") triggerDriverSearch();
+      });
+
+      window.triggerDriverSearch = triggerDriverSearch;
 
       window.updateDriverViewFromDatabricks = function (statusMap) {
         if (statusMap && typeof statusMap === "object") {
