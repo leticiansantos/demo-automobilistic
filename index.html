@@ -383,6 +383,12 @@
       <li class="nav-item">
         <a href="#motorista" data-panel="motorista">Visão do Motorista</a>
       </li>
+      <li class="nav-item">
+        <a href="#pac" data-panel="pac">Visão PAC</a>
+      </li>
+      <li class="nav-item">
+        <a href="#centralizada" data-panel="centralizada">Visão Centralizada</a>
+      </li>
     </ul>
   </nav>
 
@@ -456,6 +462,20 @@
         </div>
       </div>
     </section>
+
+    <section id="panel-pac" class="panel">
+      <div class="panel-placeholder">
+        <h2>Visão PAC</h2>
+        <p>Conteúdo em breve.</p>
+      </div>
+    </section>
+
+    <section id="panel-centralizada" class="panel">
+      <div class="panel-placeholder">
+        <h2>Visão Centralizada</h2>
+        <p>Conteúdo em breve.</p>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -481,7 +501,7 @@
       });
 
       var hash = (location.hash || '#dashboard').slice(1);
-      if (hash === 'genie' || hash === 'dashboard' || hash === 'motorista') {
+      if (['genie', 'dashboard', 'motorista', 'pac', 'centralizada'].indexOf(hash) !== -1) {
         switchPanel(hash);
       }
     })();
