@@ -612,12 +612,18 @@
         if (tr) tr.classList.toggle("highlight", on);
       }
 
+      function scrollToAlertRow(id) {
+        var tr = document.querySelector("#alerts-tbody tr[data-id=\"" + id + "\"]");
+        if (tr) tr.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      }
+
       function bindPointHover() {
         document.querySelectorAll(".car-point").forEach(function (el) {
           var id = el.getAttribute("data-id");
           el.addEventListener("mouseenter", function () {
             clearHighlights();
             highlightItem(id, true);
+            scrollToAlertRow(id);
           });
           el.addEventListener("mouseleave", function () {
             clearHighlights();
