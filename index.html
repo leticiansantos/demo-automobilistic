@@ -254,7 +254,7 @@
       height: auto;
       display: block;
       margin: 0;
-      opacity: 0.6;
+      opacity: 0.2;
     }
 
     #car-points {
@@ -489,18 +489,18 @@
     // ----- Visão do Motorista: posição dos círculos/legendas conforme tabela Databricks -----
     (function () {
       var ITENS = [
-        { id: "1", titulo: "Check engine", descricao: "Luz de motor acesa. Indica que o sistema de diagnóstico identificou uma falha.", solucao: "Recomenda-se verificar o veículo em uma oficina autorizada e ler os códigos OBD2.", ponto: "motor", top: "8%", left: "18%", arrow: "bottom" },
-        { id: "2", titulo: "Motor e ignição", descricao: "Possível falha de ignição (misfire). Pode causar perda de potência e consumo elevado.", solucao: "Verificar velas, bobinas e sistema de combustível. Evitar acelerações fortes até a revisão.", ponto: "motor", top: "22%", left: "22%", arrow: "bottom" },
-        { id: "3", titulo: "Temperatura do motor", descricao: "Temperatura do motor elevada. Risco de superaquecimento.", solucao: "Parar com segurança, desligar o motor e verificar nível do líquido de arrefecimento e radiador.", ponto: "motor", top: "12%", left: "28%", arrow: "bottom" },
-        { id: "4", titulo: "Bateria e alternador", descricao: "Tensão da bateria baixa ou falha no sistema de carga.", solucao: "Verificar alternador, correia e bornes da bateria. Trocar bateria se necessário.", ponto: "eletrico", top: "18%", left: "8%", arrow: "right" },
-        { id: "5", titulo: "Sensores MAF/MAP", descricao: "Sensor de fluxo ou pressão de ar com leitura anômala.", solucao: "Verificar admissão de ar, mangueiras e limpar ou substituir o sensor conforme diagnóstico.", ponto: "sensores", top: "28%", left: "12%", arrow: "right" },
-        { id: "6", titulo: "Posição do acelerador", descricao: "Sensor do pedal/acelerador com comportamento irregular.", solucao: "Pode afetar resposta do motor. Verificar sensor e fiação em oficina.", ponto: "sensores", top: "58%", left: "32%", arrow: "top" },
-        { id: "7", titulo: "Sistema de combustível", descricao: "Sistema de combustível com anomalia ou consumo acima do esperado.", solucao: "Agendar verificação. Verificar filtro de combustível, bicos e pressão.", ponto: "combustivel", top: "62%", left: "42%", arrow: "top" },
-        { id: "8", titulo: "Transmissão automática", descricao: "Sistema de transmissão detectou irregularidade.", solucao: "Evitar esforços e agendar diagnóstico. Verificar fluido e sensores.", ponto: "transmissao", top: "68%", left: "48%", arrow: "top" },
-        { id: "9", titulo: "Emissões / Catalisador", descricao: "Eficiência do catalisador reduzida ou sonda lambda com problema.", solucao: "Verificar sistema de escapamento e sondas. Pode afetar consumo e emissões.", ponto: "emissoes", top: "52%", left: "72%", arrow: "left" },
-        { id: "10", titulo: "Sistema ABS/estabilidade", descricao: "Sistema de freios ou controle de estabilidade com falha.", solucao: "Dirigir com cautela e verificar sensores de roda e módulo ABS.", ponto: "freios", top: "72%", left: "78%", arrow: "top" },
-        { id: "11", titulo: "Airbag / segurança", descricao: "Sistema de airbag ou suplementar de segurança com falha.", solucao: "Verificar o veículo em oficina. Luz no painel indica necessidade de diagnóstico.", ponto: "airbag", top: "14%", left: "48%", arrow: "bottom" },
-        { id: "12", titulo: "Comunicação entre módulos", descricao: "Falha de comunicação entre módulos eletrônicos (CAN).", solucao: "Recomenda-se diagnóstico completo. Pode estar relacionado a bateria ou conectores.", ponto: "eletrico", top: "8%", left: "38%", arrow: "bottom" }
+        { id: "1", titulo: "Check engine", descricao: "Luz de motor acesa. Indica que o sistema de diagnóstico identificou uma falha.", solucao: "Recomenda-se verificar o veículo em uma oficina autorizada e ler os códigos OBD2.", ponto: "motor", top: "50%", left: "18%", arrow: "bottom" },
+        { id: "2", titulo: "Motor e ignição", descricao: "Possível falha de ignição (misfire). Pode causar perda de potência e consumo elevado.", solucao: "Verificar velas, bobinas e sistema de combustível. Evitar acelerações fortes até a revisão.", ponto: "motor", top: "50%", left: "18%", arrow: "bottom" },
+        { id: "3", titulo: "Temperatura do motor", descricao: "Temperatura do motor elevada. Risco de superaquecimento.", solucao: "Parar com segurança, desligar o motor e verificar nível do líquido de arrefecimento e radiador.", ponto: "motor", top: "50%", left: "18%", arrow: "bottom" },
+        { id: "4", titulo: "Bateria e alternador", descricao: "Tensão da bateria baixa ou falha no sistema de carga.", solucao: "Verificar alternador, correia e bornes da bateria. Trocar bateria se necessário.", ponto: "eletrico", top: "54%", left: "25%", arrow: "right" },
+        { id: "5", titulo: "Sensores MAF/MAP", descricao: "Sensor de fluxo ou pressão de ar com leitura anômala.", solucao: "Verificar admissão de ar, mangueiras e limpar ou substituir o sensor conforme diagnóstico.", ponto: "sensores", top: "50%", left: "18%", arrow: "right" },
+        { id: "6", titulo: "Posição do acelerador", descricao: "Sensor do pedal/acelerador com comportamento irregular.", solucao: "Pode afetar resposta do motor. Verificar sensor e fiação em oficina.", ponto: "sensores", top: "65%", left: "38%", arrow: "top" },
+        { id: "7", titulo: "Sistema de combustível", descricao: "Sistema de combustível com anomalia ou consumo acima do esperado.", solucao: "Agendar verificação. Verificar filtro de combustível, bicos e pressão.", ponto: "combustivel", top: "52%", left: "76%", arrow: "top" },
+        { id: "8", titulo: "Transmissão automática", descricao: "Sistema de transmissão detectou irregularidade.", solucao: "Evitar esforços e agendar diagnóstico. Verificar fluido e sensores.", ponto: "transmissao", top: "65%", left: "38%", arrow: "top" },
+        { id: "9", titulo: "Emissões / Catalisador", descricao: "Eficiência do catalisador reduzida ou sonda lambda com problema.", solucao: "Verificar sistema de escapamento e sondas. Pode afetar consumo e emissões.", ponto: "emissoes", top: "64%", left: "87%", arrow: "left" },
+        { id: "10", titulo: "Sistema ABS/estabilidade", descricao: "Sistema de freios ou controle de estabilidade com falha.", solucao: "Dirigir com cautela e verificar sensores de roda e módulo ABS.", ponto: "freios", top: "70%", left: "78%", arrow: "top" },
+        { id: "11", titulo: "Airbag / segurança", descricao: "Sistema de airbag ou suplementar de segurança com falha.", solucao: "Verificar o veículo em oficina. Luz no painel indica necessidade de diagnóstico.", ponto: "airbag", top: "47%", left: "44%", arrow: "bottom" },
+        { id: "12", titulo: "Comunicação entre módulos", descricao: "Falha de comunicação entre módulos eletrônicos (CAN).", solucao: "Recomenda-se diagnóstico completo. Pode estar relacionado a bateria ou conectores.", ponto: "eletrico", top: "54%", left: "25%", arrow: "bottom" }
       ];
 
       var statusPorId = {};
@@ -541,13 +541,52 @@
         var container = document.getElementById("car-points");
         if (!container) return;
         container.innerHTML = "";
-        ITENS.forEach(function (item) {
+
+        var posKey = function (item) {
+          var p = getItemPosition(item);
+          return p.top + "," + p.left;
+        };
+        var byPos = {};
+        ITENS.forEach(function (item, idx) {
+          var key = posKey(item);
+          if (!byPos[key]) byPos[key] = [];
+          byPos[key].push({ item: item, index: idx });
+        });
+
+        var minOffsetPercent = 3;
+        var charsPerLine = 14;
+        var percentPerLine = 2.5;
+        function estimateHeightPercent(titulo) {
+          if (!titulo || !String(titulo).length) return minOffsetPercent;
+          var estimatedLines = Math.max(1, Math.ceil(String(titulo).length / charsPerLine));
+          return Math.max(minOffsetPercent, estimatedLines * percentPerLine);
+        }
+        var adjustedTopByIndex = {};
+        Object.keys(byPos).forEach(function (key) {
+          var group = byPos[key];
+          if (group.length > 1) {
+            var baseTop = getItemPosition(group[0].item).top;
+            var baseNum = parseFloat(String(baseTop).replace("%", "")) || 0;
+            var stackUp = baseNum <= 50;
+            // Multi-linha: tratar apenas os elementos ABAIXO (altura só empurra o próximo); não dobrar distância para o elemento acima
+            var nextTop = baseNum;
+            group.forEach(function (entry, i) {
+              adjustedTopByIndex[entry.index] = (stackUp ? Math.max(0, nextTop) : nextTop) + "%";
+              // distância até o próximo: primeiro gap = mínimo (não dobrar acima); depois = altura do item atual (só empurra os abaixo)
+              var step = i === 0 ? minOffsetPercent : estimateHeightPercent(entry.item.titulo);
+              nextTop = stackUp ? nextTop - step : nextTop + step;
+            });
+          }
+        });
+
+        ITENS.forEach(function (item, index) {
           var pos = getItemPosition(item);
+          var top = adjustedTopByIndex.hasOwnProperty(index) ? adjustedTopByIndex[index] : pos.top;
           var status = statusPorId[item.id] || "ok";
           var div = document.createElement("div");
           div.className = "car-point " + getStatusClass(status);
           div.setAttribute("data-id", item.id);
-          div.style.top = pos.top;
+          div.style.top = top;
           div.style.left = pos.left;
           div.innerHTML = "<span class=\"car-point-dot\"></span><span class=\"car-point-label\">" + escapeHtml(item.titulo) + "</span>";
           container.appendChild(div);
