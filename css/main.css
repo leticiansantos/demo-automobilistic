@@ -812,7 +812,7 @@ body {
 .alerts-table thead th {
   text-align: left;
   padding: 10px 12px;
-  background: rgba(0, 33, 87, 0.12);
+  background: #e6eaf0;
   color: var(--vw-navy);
   font-weight: 600;
   position: sticky;
