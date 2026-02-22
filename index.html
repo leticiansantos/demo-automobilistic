@@ -126,6 +126,231 @@
       height: 18px;
     }
 
+    .otto-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 24px;
+      background: #0a0a0a;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .otto-trigger:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 20px rgba(0, 147, 208, 0.25);
+    }
+
+    .otto-trigger-icon {
+      display: block;
+      width: 45px;
+      height: 45px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border-radius: 50%;
+    }
+
+    .otto-trigger-icon img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center center;
+      transform: scale(1.4);
+    }
+
+    .otto-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .otto-popup-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .otto-popup {
+      background: #f0f0f0;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .otto-popup-header {
+      padding: 16px 20px;
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0a0a0a;
+    }
+
+    .otto-popup-header img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      object-position: center;
+    }
+
+    .otto-popup-header h3 {
+      flex: 1;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    .otto-popup-close {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .otto-popup-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .otto-popup-clear {
+      padding: 8px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .otto-popup-clear:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .otto-chat-messages {
+      flex: 1;
+      min-height: 280px;
+      max-height: 50vh;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f5f5f5;
+    }
+
+    .otto-msg {
+      max-width: 88%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .otto-msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .otto-msg.assistant {
+      align-self: flex-start;
+      background: #fff;
+      color: #1a1a1a;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .otto-msg.assistant.thinking {
+      opacity: 0.8;
+      font-style: italic;
+    }
+
+    .otto-chat-form {
+      padding: 16px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: #f0f0f0;
+    }
+
+    .otto-chat-input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    .otto-chat-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .otto-chat-input::placeholder {
+      color: #888;
+    }
+
+    .otto-chat-send {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .otto-chat-send:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .otto-chat-send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .benefit-popup-overlay {
       position: fixed;
       inset: 0;
@@ -346,11 +571,29 @@
       min-height: 100%;
     }
 
+    .driver-view-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .driver-view-header-content {
+      flex: 1;
+      min-width: 0;
+    }
+
     .driver-view-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--vw-navy);
       margin-bottom: 4px;
+    }
+
+    .driver-view .otto-trigger {
+      background: #0a0a0a;
+      color: #fff;
     }
 
     .driver-view-sub {
@@ -806,6 +1049,24 @@
     </div>
   </nav>
 
+  <div class="otto-popup-overlay" id="otto-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="otto-popup-title" aria-hidden="true">
+    <div class="otto-popup">
+      <div class="otto-popup-header">
+        <img src="assets/otto-symbol.png" alt="Otto">
+        <h3 id="otto-popup-title">Fala, Otto!</h3>
+        <button type="button" class="otto-popup-clear" id="otto-popup-clear" aria-label="Limpar conversa">Limpar conversa</button>
+        <button type="button" class="otto-popup-close" id="otto-popup-close" aria-label="Fechar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="otto-chat-messages" id="otto-chat-messages"></div>
+      <form class="otto-chat-form" id="otto-chat-form">
+        <textarea class="otto-chat-input" id="otto-chat-input" placeholder="Pergunte sobre seu carro..." rows="1" maxlength="2000"></textarea>
+        <button type="submit" class="otto-chat-send" id="otto-chat-send">Enviar</button>
+      </form>
+    </div>
+  </div>
+
   <div class="benefit-popup-overlay" id="benefit-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="benefit-popup-title" aria-hidden="true">
     <div class="benefit-popup">
       <div class="benefit-popup-header">
@@ -865,12 +1126,18 @@
     <section id="panel-motorista" class="panel">
       <div id="driver-view" class="driver-view">
         <div class="driver-view-header">
-          <h1>Visão do Motorista</h1>
-          <p class="driver-view-sub">Status dos módulos do veículo (dados do Databricks)</p>
-          <div id="drive-safety-flag" class="drive-safety-flag" role="status" aria-live="polite">
-            <span class="drive-safety-dot"></span>
-            <span class="drive-safety-text">Carregando…</span>
+          <div class="driver-view-header-content">
+            <h1>Visão do Motorista</h1>
+            <p class="driver-view-sub">Status dos módulos do veículo (dados do Databricks)</p>
+            <div id="drive-safety-flag" class="drive-safety-flag" role="status" aria-live="polite">
+              <span class="drive-safety-dot"></span>
+              <span class="drive-safety-text">Carregando…</span>
+            </div>
           </div>
+          <button type="button" class="otto-trigger" id="otto-trigger" aria-label="Fala, Otto! Pergunte sobre seu carro">
+            <span class="otto-trigger-icon"><img src="assets/otto-symbol.png" alt="Otto"></span>
+            <span>Fala, Otto!</span>
+          </button>
         </div>
         <div class="driver-view-body">
           <div class="car-section">
@@ -1017,6 +1284,106 @@
       if (closeBtn) closeBtn.addEventListener("click", closeBenefitPopup);
       if (overlay) overlay.addEventListener("click", function (e) { if (e.target === overlay) closeBenefitPopup(); });
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeBenefitPopup(); });
+    })();
+
+    (function () {
+      var ottoOverlay = document.getElementById("otto-popup-overlay");
+      var ottoMessages = document.getElementById("otto-chat-messages");
+      var ottoForm = document.getElementById("otto-chat-form");
+      var ottoInput = document.getElementById("otto-chat-input");
+      var ottoSend = document.getElementById("otto-chat-send");
+      var ottoTrigger = document.getElementById("otto-trigger");
+      var ottoClose = document.getElementById("otto-popup-close");
+      var ottoClear = document.getElementById("otto-popup-clear");
+
+      function escapeHtml(text) {
+        var div = document.createElement("div");
+        div.textContent = text == null ? "" : String(text);
+        return div.innerHTML;
+      }
+
+      function appendMessage(role, text, className) {
+        if (!ottoMessages) return;
+        var div = document.createElement("div");
+        div.className = "otto-msg " + (role === "user" ? "user" : "assistant") + (className ? " " + className : "");
+        div.textContent = text;
+        ottoMessages.appendChild(div);
+        ottoMessages.scrollTop = ottoMessages.scrollHeight;
+      }
+
+      function openOttoPopup() {
+        if (ottoOverlay) {
+          ottoOverlay.classList.add("open");
+          ottoOverlay.setAttribute("aria-hidden", "false");
+        }
+        if (ottoMessages && ottoMessages.children.length === 0) {
+          appendMessage("assistant", "Olá! Sou o Otto. Pergunte sobre seu carro: revisões, alertas, manual, consumo e muito mais.");
+        }
+        if (ottoInput) ottoInput.focus();
+      }
+
+      function closeOttoPopup() {
+        if (ottoOverlay) {
+          ottoOverlay.classList.remove("open");
+          ottoOverlay.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      function askGenieViaApi(question) {
+        if (typeof window.askOttoGenie === "function") {
+          var result = window.askOttoGenie(question);
+          return result != null && typeof result.then === "function" ? result : Promise.resolve(result);
+        }
+        return Promise.resolve("Configure a função window.askOttoGenie(pergunta) para chamar a API do Genie/Databricks e retornar a resposta (texto ou Promise). Você pode usar o ID do motorista atual: " + (window.getDriverIdForSearch ? window.getDriverIdForSearch() : "") + ".");
+      }
+
+      if (ottoInput) {
+        ottoInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (ottoForm) ottoForm.requestSubmit();
+          }
+        });
+      }
+
+      if (ottoForm) {
+        ottoForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var text = (ottoInput && ottoInput.value || "").trim();
+          if (!text) return;
+          if (ottoInput) ottoInput.value = "";
+          appendMessage("user", text);
+          ottoSend.disabled = true;
+          appendMessage("assistant", "Pensando...", "thinking");
+          var thinkingEl = ottoMessages.lastElementChild;
+
+          askGenieViaApi(text).then(function (reply) {
+            if (thinkingEl && thinkingEl.parentNode) thinkingEl.remove();
+            appendMessage("assistant", reply == null ? "Sem resposta." : String(reply));
+          }).catch(function (err) {
+            if (thinkingEl && thinkingEl.parentNode) thinkingEl.remove();
+            appendMessage("assistant", "Erro ao consultar: " + (err && err.message ? err.message : String(err)));
+          }).then(function () {
+            ottoSend.disabled = false;
+            if (ottoInput) ottoInput.focus();
+          });
+        });
+      }
+
+      function clearOttoConversation() {
+        if (!ottoMessages) return;
+        ottoMessages.innerHTML = "";
+        appendMessage("assistant", "Olá! Sou o Otto. Pergunte sobre seu carro: revisões, alertas, manual, consumo e muito mais.");
+      }
+
+      if (ottoTrigger) ottoTrigger.addEventListener("click", openOttoPopup);
+      if (ottoClose) ottoClose.addEventListener("click", closeOttoPopup);
+      if (ottoClear) ottoClear.addEventListener("click", clearOttoConversation);
+      if (ottoOverlay) ottoOverlay.addEventListener("click", function (e) { if (e.target === ottoOverlay) closeOttoPopup(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && ottoOverlay && ottoOverlay.classList.contains("open")) closeOttoPopup(); });
+
+      window.openOttoPopup = openOttoPopup;
+      window.closeOttoPopup = closeOttoPopup;
     })();
 
     // ----- Visão do Motorista: posição dos círculos/legendas conforme tabela Databricks -----
