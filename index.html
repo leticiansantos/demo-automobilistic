@@ -4,18 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VW do Brasil - Databricks</title>
+  <link rel="icon" href="assets/vw-logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1419;
-      --surface: #1a2332;
-      --border: #2d3a4d;
-      --text: #e6edf3;
-      --text-muted: #8b9cb3;
-      --accent: #0d9488;
-      --accent-hover: #14b8a6;
+      --vw-navy: #002157;
+      --vw-cyan: #0093D0;
+      --vw-white: #ffffff;
+      --bg: #001a42;
+      --surface: #002157;
+      --border: rgba(0, 147, 208, 0.3);
+      --text: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.85);
+      --accent: #0093D0;
+      --accent-hover: #00a8e8;
       --nav-height: 56px;
     }
 
@@ -46,11 +50,21 @@
     }
 
     .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       font-weight: 700;
       font-size: 1.1rem;
       color: var(--text);
       margin-right: 32px;
       letter-spacing: -0.02em;
+    }
+
+    .nav-brand img {
+      height: 28px;
+      width: auto;
+      display: block;
+      filter: brightness(0) invert(1);
     }
 
     .nav-menu {
@@ -77,7 +91,7 @@
 
     .nav-item a.active {
       color: var(--accent);
-      background: rgba(13, 148, 136, 0.15);
+      background: rgba(0, 147, 208, 0.2);
     }
 
     .top-bar {
@@ -188,7 +202,7 @@
 
     /* ----- Visão do Motorista ----- */
     #panel-motorista {
-      background: #e8e8e8;
+      background: var(--vw-white);
       overflow: auto;
     }
 
@@ -196,20 +210,21 @@
       max-width: 1400px;
       margin: 0 auto;
       padding: 24px 20px;
-      background: #e8e8e8;
+      background: var(--vw-white);
       min-height: 100%;
     }
 
     .driver-view-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #111;
+      color: var(--vw-navy);
       margin-bottom: 4px;
     }
 
     .driver-view-sub {
       font-size: 0.9rem;
-      color: #555;
+      color: var(--vw-navy);
+      opacity: 0.85;
       margin-bottom: 12px;
     }
 
@@ -224,28 +239,29 @@
     .driver-id-search label {
       font-size: 0.9rem;
       font-weight: 600;
-      color: #333;
+      color: var(--vw-navy);
     }
 
     .driver-id-search input {
       padding: 8px 12px;
-      border: 1px solid #ccc;
+      border: 1px solid rgba(0, 33, 87, 0.25);
       border-radius: 6px;
       font-size: 0.95rem;
       min-width: 180px;
       font-family: inherit;
+      color: var(--vw-navy);
     }
 
     .driver-id-search input:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+      box-shadow: 0 0 0 2px rgba(0, 147, 208, 0.25);
     }
 
     .driver-id-search .btn-search {
       padding: 8px 20px;
       background: var(--accent);
-      color: #fff;
+      color: var(--vw-white);
       border: none;
       border-radius: 6px;
       font-size: 0.95rem;
@@ -320,9 +336,9 @@
     }
 
     .car-section {
-      background: #f5f5f5;
+      background: rgba(0, 147, 208, 0.06);
       border-radius: 12px;
-      border: 1px solid #ddd;
+      border: 1px solid rgba(0, 33, 87, 0.15);
       padding: 0;
       width: fit-content;
       max-width: 100%;
@@ -374,7 +390,7 @@
       height: 12px;
       border-radius: 50%;
       flex-shrink: 0;
-      border: 2px solid #333;
+      border: 2px solid var(--vw-navy);
     }
 
     .car-point.status-ok .car-point-dot { background: #00c853; border-color: #00c853; }
@@ -384,27 +400,27 @@
     .car-point-label {
       font-size: 11px;
       font-weight: 700;
-      color: #000;
+      color: var(--vw-navy);
       line-height: 1.2;
     }
 
     .car-point.highlight {
-      outline: 2px solid #0d9488;
+      outline: 2px solid var(--accent);
       outline-offset: 2px;
       border-radius: 4px;
     }
 
     .car-point.highlight .car-point-label {
-      background: rgba(13, 148, 136, 0.15);
+      background: rgba(0, 147, 208, 0.12);
       padding: 2px 4px;
       border-radius: 2px;
     }
 
     .table-section {
-      background: #f5f5f5;
+      background: rgba(0, 147, 208, 0.06);
       border-radius: 12px;
       padding: 16px;
-      border: 1px solid #ddd;
+      border: 1px solid rgba(0, 33, 87, 0.15);
     }
 
     .table-wrapper {
@@ -417,14 +433,14 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.85rem;
-      background: #fff;
+      background: var(--vw-white);
     }
 
     .alerts-table th {
       text-align: left;
       padding: 10px 12px;
-      background: #e0e0e0;
-      color: #111;
+      background: rgba(0, 33, 87, 0.08);
+      color: var(--vw-navy);
       font-weight: 600;
       position: sticky;
       top: 0;
@@ -432,18 +448,18 @@
 
     .alerts-table td {
       padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      color: #222;
+      border-bottom: 1px solid rgba(0, 33, 87, 0.1);
+      color: var(--vw-navy);
       vertical-align: top;
     }
 
     .alerts-table tr:hover,
     .alerts-table tr.highlight {
-      background: rgba(13, 148, 136, 0.1);
+      background: rgba(0, 147, 208, 0.08);
     }
 
     .alerts-table tr.highlight {
-      background: rgba(13, 148, 136, 0.18);
+      background: rgba(0, 147, 208, 0.15);
     }
 
     .alerts-table tbody tr {
@@ -455,7 +471,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      border: 1px solid #333;
+      border: 1px solid var(--vw-navy);
     }
 
     .table-dot.status-ok { background: #00c853; border-color: #00c853; }
@@ -465,7 +481,7 @@
 </head>
 <body>
   <nav class="nav">
-    <span class="nav-brand">Databricks</span>
+    <span class="nav-brand"><img src="assets/vw-logo.png" alt="Volkswagen">VW do Brasil</span>
     <ul class="nav-menu">
       <li class="nav-item">
         <a href="#dashboard" data-panel="dashboard" class="active">Visão de Mercado</a>

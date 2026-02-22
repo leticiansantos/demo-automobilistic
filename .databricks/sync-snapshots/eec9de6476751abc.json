@@ -7,13 +7,15 @@
     "README.md": "2026-02-17T09:56:22.589449965-03:00",
     "app.yaml": "2026-02-17T10:34:41.582774732-03:00",
     "assets/car-diagram.png": "2026-02-21T17:50:23.783722829-03:00",
-    "index.html": "2026-02-21T19:54:50.521107451-03:00"
+    "assets/vw-logo.png": "2026-02-22T07:32:36.631990894-03:00",
+    "index.html": "2026-02-22T07:46:05.742714561-03:00"
   },
   "local_to_remote_names": {
     ".gitignore": ".gitignore",
     "README.md": "README.md",
     "app.yaml": "app.yaml",
     "assets/car-diagram.png": "assets/car-diagram.png",
+    "assets/vw-logo.png": "assets/vw-logo.png",
     "index.html": "index.html"
   },
   "remote_to_local_names": {
@@ -21,6 +23,7 @@
     "README.md": "README.md",
     "app.yaml": "app.yaml",
     "assets/car-diagram.png": "assets/car-diagram.png",
+    "assets/vw-logo.png": "assets/vw-logo.png",
     "index.html": "index.html"
   }
 }
