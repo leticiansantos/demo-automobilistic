@@ -22,7 +22,7 @@
           <a href="#dashboard" data-panel="dashboard" class="active">Visão de Mercado</a>
         </li>
         <li class="nav-item">
-          <a href="#genie" data-panel="genie">Pergunte sobre o Tera</a>
+          <a href="#genie" data-panel="genie">Pergunte sobre o seu negócio</a>
         </li>
         <li class="nav-item">
           <a href="#motorista" data-panel="motorista">Visão do Motorista</a>
@@ -95,20 +95,16 @@
     </section>
 
     <section id="panel-genie" class="panel">
-      <!-- Replace the src below with your Genie space embed URL from Databricks:
-           Open your Genie space → Share → Embed (if available). Otherwise use the Genie API for custom integration. -->
-      <iframe
-        id="iframe-genie"
-        src="https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/genie/rooms/01f10ba1cf701a72be55d82980a77668?o=7474651027276549"
-        
-        title="Databricks Genie"
-      ></iframe>
-      <!-- If Genie embed URL is different or not yet available, use the placeholder:
-      <div class="panel-placeholder">
-        <h2>Genie</h2>
-        <p>Paste your Genie embed URL in <code>index.html</code> (iframe with id="iframe-genie"). Get it from your Genie space → Share → Embed, or use the Genie Conversation API for a custom UI.</p>
+      <div class="panel-genie-actions">
+        <a
+          id="genie-open-new-tab"
+          href="https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/one"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="panel-genie-cta">
+          Abrir Databricks One em nova aba
+        </a>
       </div>
-      -->
     </section>
 
     <section id="panel-motorista" class="panel">

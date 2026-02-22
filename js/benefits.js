@@ -8,7 +8,7 @@
       body: "<h4>Para o motorista</h4><p>Visão clara do cenário de mercado e ofertas, ajudando na decisão de compra e no acompanhamento de tendências.</p><h4>Para o negócio</h4><p>Dashboards centralizados permitem análise de desempenho, metas e oportunidades de venda em um só lugar.</p>"
     },
     genie: {
-      title: "Benefícios – Pergunte sobre o Tera",
+      title: "Benefícios – Pergunte sobre o seu negócio",
       body: "<h4>Para o motorista</h4><p>Respostas rápidas em linguagem natural sobre o veículo Tera, manual, funcionalidades e dúvidas frequentes.</p><h4>Para o negócio</h4><p>Redução de custos de atendimento e maior satisfação do cliente com suporte inteligente e escalável.</p>"
     },
     motorista: {

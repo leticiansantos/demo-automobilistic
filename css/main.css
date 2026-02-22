@@ -502,6 +502,27 @@ body {
   flex-direction: column;
 }
 
+.panel-genie-actions {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.panel-genie-cta {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--surface, #fff);
+  background: var(--primary, #0d6efd);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.panel-genie-cta:hover {
+  background: var(--primary-hover, #0b5ed7);
+}
 .panel iframe {
   flex: 1;
   width: 100%;
