@@ -8,9 +8,15 @@
     "app.yaml": "2026-02-17T10:34:41.582774732-03:00",
     "assets/car-diagram.png": "2026-02-21T17:50:23.783722829-03:00",
     "assets/otto-symbol.png": "2026-02-22T08:18:13.165746224-03:00",
-    "assets/otto.png": "2026-02-22T08:09:55.688451566-03:00",
     "assets/vw-logo.png": "2026-02-22T07:32:36.631990894-03:00",
-    "index.html": "2026-02-22T08:25:08.890132485-03:00"
+    "css/main.css": "2026-02-22T08:46:16.027800296-03:00",
+    "index.html": "2026-02-22T08:46:13.573627808-03:00",
+    "js/app.js": "2026-02-22T08:32:13.855938634-03:00",
+    "js/benefits.js": "2026-02-22T08:32:36.704558268-03:00",
+    "js/driver-view-temp.js": "2026-02-22T08:35:25.240230834-03:00",
+    "js/driver-view.js": "2026-02-22T08:46:17.804589216-03:00",
+    "js/history.js": "2026-02-22T08:35:12.294868281-03:00",
+    "js/otto-chat.js": "2026-02-22T08:33:08.854280089-03:00"
   },
   "local_to_remote_names": {
     ".gitignore": ".gitignore",
@@ -18,9 +24,15 @@
     "app.yaml": "app.yaml",
     "assets/car-diagram.png": "assets/car-diagram.png",
     "assets/otto-symbol.png": "assets/otto-symbol.png",
-    "assets/otto.png": "assets/otto.png",
     "assets/vw-logo.png": "assets/vw-logo.png",
-    "index.html": "index.html"
+    "css/main.css": "css/main.css",
+    "index.html": "index.html",
+    "js/app.js": "js/app.js",
+    "js/benefits.js": "js/benefits.js",
+    "js/driver-view-temp.js": "js/driver-view-temp.js",
+    "js/driver-view.js": "js/driver-view.js",
+    "js/history.js": "js/history.js",
+    "js/otto-chat.js": "js/otto-chat.js"
   },
   "remote_to_local_names": {
     ".gitignore": ".gitignore",
@@ -28,8 +40,14 @@
     "app.yaml": "app.yaml",
     "assets/car-diagram.png": "assets/car-diagram.png",
     "assets/otto-symbol.png": "assets/otto-symbol.png",
-    "assets/otto.png": "assets/otto.png",
     "assets/vw-logo.png": "assets/vw-logo.png",
-    "index.html": "index.html"
+    "css/main.css": "css/main.css",
+    "index.html": "index.html",
+    "js/app.js": "js/app.js",
+    "js/benefits.js": "js/benefits.js",
+    "js/driver-view-temp.js": "js/driver-view-temp.js",
+    "js/driver-view.js": "js/driver-view.js",
+    "js/history.js": "js/history.js",
+    "js/otto-chat.js": "js/otto-chat.js"
   }
 }
