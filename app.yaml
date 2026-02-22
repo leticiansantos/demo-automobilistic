@@ -1,4 +1,21 @@
+# App único: frontend + API no mesmo domínio (evita CORS no Databricks Apps).
 command:
-  - npx
-  - serve
-  - .
+  - sh
+  - -c
+  - npm install && node backend/server.js
+
+env:
+  - name: PORT
+    value: "8080"
+  # URL do Knowledge Assistant (Agents → seu KA → See Agent status). Substitua pela sua URL.
+  - name: KA_ENDPOINT_URL
+    value: "https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/serving-endpoints/ka-4e7a9afc-endpoint/invocations"
+  # Token: cole o token aqui (Settings → Developer → Access tokens) OU use valueFrom se o Secret injetar.
+  - name: KA_TOKEN
+    value: "cole o token aqui"
+  # valueFrom: ka_token
+  - name: DATABRICKS_INSTANCE
+    value: "https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com"
+  - name: GENIE_SPACE_ID
+    value: 01f10ba1cf701a72be55d82980a77668
+

@@ -77,7 +77,14 @@
         appendMessage("assistant", reply == null ? "Sem resposta." : String(reply));
       }).catch(function (err) {
         if (thinkingEl && thinkingEl.parentNode) thinkingEl.remove();
-        appendMessage("assistant", "Erro ao consultar: " + (err && err.message ? err.message : String(err)));
+        var msg = err && err.message ? err.message : String(err);
+        if (msg.indexOf("Failed to fetch") !== -1 || msg.indexOf("NetworkError") !== -1) {
+          msg = "Não foi possível conectar ao servidor (geralmente CORS no navegador). " +
+            "Use um proxy no backend: em js/databricks-genie.js defina PROXY_URL com a URL do seu backend que chama o KA/Genie e devolve { \"text\": \"...\" }.";
+        } else {
+          msg = "Erro ao consultar: " + msg;
+        }
+        appendMessage("assistant", msg);
       }).then(function () {
         ottoSend.disabled = false;
         if (ottoInput) ottoInput.focus();
@@ -88,6 +95,7 @@
   function clearOttoConversation() {
     if (!ottoMessages) return;
     ottoMessages.innerHTML = "";
+    if (typeof window.genieResetConversation === "function") window.genieResetConversation();
     appendMessage("assistant", "Olá! Sou o Otto. Pergunte sobre seu carro: revisões, alertas, manual, consumo e muito mais.");
   }
 

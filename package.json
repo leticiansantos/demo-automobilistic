@@ -1,0 +1,16 @@
+{
+  "name": "demo-automobilistic",
+  "version": "1.0.0",
+  "description": "Demo automobilístico – frontend + API no mesmo app (evita CORS no Databricks Apps)",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}
