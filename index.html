@@ -94,6 +94,138 @@
       background: rgba(0, 147, 208, 0.2);
     }
 
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .nav-benefit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 147, 208, 0.15);
+      color: var(--accent);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .nav-benefit-btn:hover {
+      background: rgba(0, 147, 208, 0.25);
+      color: var(--vw-navy);
+    }
+
+    .nav-benefit-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .benefit-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 33, 87, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .benefit-popup-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .benefit-popup {
+      background: var(--vw-white);
+      border-radius: 12px;
+      max-width: 440px;
+      width: 100%;
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 33, 87, 0.2);
+      border: 1px solid rgba(0, 33, 87, 0.1);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+    }
+
+    .benefit-popup-overlay.open .benefit-popup {
+      transform: scale(1);
+    }
+
+    .benefit-popup-header {
+      padding: 16px 20px;
+      border-bottom: 2px solid var(--vw-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .benefit-popup-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--vw-navy);
+      margin: 0;
+    }
+
+    .benefit-popup-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--vw-navy);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .benefit-popup-close:hover {
+      background: rgba(0, 33, 87, 0.08);
+    }
+
+    .benefit-popup-close svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .benefit-popup-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--vw-navy);
+    }
+
+    .benefit-popup-body h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 8px 0;
+    }
+
+    .benefit-popup-body p {
+      margin: 0 0 12px 0;
+    }
+
+    .benefit-popup-body p:last-child {
+      margin-bottom: 0;
+    }
+
     .top-bar {
       display: none;
       align-items: center;
@@ -482,24 +614,41 @@
 <body>
   <nav class="nav">
     <span class="nav-brand"><img src="assets/vw-logo.png" alt="Volkswagen">VW do Brasil</span>
-    <ul class="nav-menu">
-      <li class="nav-item">
-        <a href="#dashboard" data-panel="dashboard" class="active">Visão de Mercado</a>
-      </li>
-      <li class="nav-item">
-        <a href="#genie" data-panel="genie">Pergunte sobre o Tera</a>
-      </li>
-      <li class="nav-item">
-        <a href="#motorista" data-panel="motorista">Visão do Motorista</a>
-      </li>
-      <li class="nav-item">
-        <a href="#pac" data-panel="pac">Visão PAC</a>
-      </li>
-      <li class="nav-item">
-        <a href="#centralizada" data-panel="centralizada">Visão Centralizada</a>
-      </li>
-    </ul>
+    <div class="nav-right">
+      <button type="button" class="nav-benefit-btn" id="nav-benefit-btn" aria-label="Benefícios desta solução">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      </button>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="#dashboard" data-panel="dashboard" class="active">Visão de Mercado</a>
+        </li>
+        <li class="nav-item">
+          <a href="#genie" data-panel="genie">Pergunte sobre o Tera</a>
+        </li>
+        <li class="nav-item">
+          <a href="#motorista" data-panel="motorista">Visão do Motorista</a>
+        </li>
+        <li class="nav-item">
+          <a href="#pac" data-panel="pac">Visão PAC</a>
+        </li>
+        <li class="nav-item">
+          <a href="#centralizada" data-panel="centralizada">Visão Centralizada</a>
+        </li>
+      </ul>
+    </div>
   </nav>
+
+  <div class="benefit-popup-overlay" id="benefit-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="benefit-popup-title" aria-hidden="true">
+    <div class="benefit-popup">
+      <div class="benefit-popup-header">
+        <h3 id="benefit-popup-title">Benefícios desta solução</h3>
+        <button type="button" class="benefit-popup-close" id="benefit-popup-close" aria-label="Fechar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="benefit-popup-body" id="benefit-popup-body"></div>
+    </div>
+  </div>
 
   <div id="top-bar" class="top-bar">
     <p class="welcome-msg">Bem-vindo, <strong id="welcome-name">Nome da Pessoa</strong></p>
@@ -624,6 +773,65 @@
       if (['genie', 'dashboard', 'motorista', 'pac', 'centralizada'].indexOf(hash) !== -1) {
         switchPanel(hash);
       }
+    })();
+
+    (function () {
+      var benefitContents = {
+        dashboard: {
+          title: "Benefícios – Visão de Mercado",
+          body: "<h4>Para o motorista</h4><p>Visão clara do cenário de mercado e ofertas, ajudando na decisão de compra e no acompanhamento de tendências.</p><h4>Para o negócio</h4><p>Dashboards centralizados permitem análise de desempenho, metas e oportunidades de venda em um só lugar.</p>"
+        },
+        genie: {
+          title: "Benefícios – Pergunte sobre o Tera",
+          body: "<h4>Para o motorista</h4><p>Respostas rápidas em linguagem natural sobre o veículo Tera, manual, funcionalidades e dúvidas frequentes.</p><h4>Para o negócio</h4><p>Redução de custos de atendimento e maior satisfação do cliente com suporte inteligente e escalável.</p>"
+        },
+        motorista: {
+          title: "Benefícios – Visão do Motorista",
+          body: "<h4>Para o motorista</h4><p>Acompanhamento em tempo real do status dos módulos do veículo, alertas e orientações de solução para dirigir com mais segurança.</p><h4>Para o negócio</h4><p>Monitoramento da frota, prevenção de falhas e dados para manutenção preditiva e decisões operacionais.</p>"
+        },
+        pac: {
+          title: "Benefícios – Visão PAC",
+          body: "<h4>Para o motorista</h4><p>Informações e indicadores da solução PAC ao alcance, com foco em uso e benefícios no dia a dia.</p><h4>Para o negócio</h4><p>Visibilidade do uso da solução PAC, métricas de adoção e ganhos de eficiência para o negócio.</p>"
+        },
+        centralizada: {
+          title: "Benefícios – Visão Centralizada",
+          body: "<h4>Para o motorista</h4><p>Uma visão unificada de informações relevantes, simplificando o acesso e a compreensão dos dados.</p><h4>Para o negócio</h4><p>Governança e controle centralizados, melhor tomada de decisão e visão integrada dos processos.</p>"
+        }
+      };
+
+      var overlay = document.getElementById("benefit-popup-overlay");
+      var titleEl = document.getElementById("benefit-popup-title");
+      var bodyEl = document.getElementById("benefit-popup-body");
+      var openBtn = document.getElementById("nav-benefit-btn");
+      var closeBtn = document.getElementById("benefit-popup-close");
+
+      function getActivePanelId() {
+        var active = document.querySelector(".panel.active");
+        return active ? active.id.replace("panel-", "") : "dashboard";
+      }
+
+      function openBenefitPopup() {
+        var panelId = getActivePanelId();
+        var data = benefitContents[panelId] || benefitContents.dashboard;
+        if (titleEl) titleEl.textContent = data.title;
+        if (bodyEl) bodyEl.innerHTML = data.body;
+        if (overlay) {
+          overlay.classList.add("open");
+          overlay.setAttribute("aria-hidden", "false");
+        }
+      }
+
+      function closeBenefitPopup() {
+        if (overlay) {
+          overlay.classList.remove("open");
+          overlay.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      if (openBtn) openBtn.addEventListener("click", openBenefitPopup);
+      if (closeBtn) closeBtn.addEventListener("click", closeBenefitPopup);
+      if (overlay) overlay.addEventListener("click", function (e) { if (e.target === overlay) closeBenefitPopup(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeBenefitPopup(); });
     })();
 
     // ----- Visão do Motorista: posição dos círculos/legendas conforme tabela Databricks -----
