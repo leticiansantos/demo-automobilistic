@@ -906,6 +906,7 @@ body {
   font-family: inherit;
   color: var(--vw-navy);
   background: var(--vw-white);
+  width: 30%;
   min-width: 200px;
 }
 
