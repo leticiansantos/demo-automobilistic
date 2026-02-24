@@ -219,6 +219,37 @@
                       Previsão de quantidade de vendas por Produto
                     </h2>
                   </div>
+                  <div class="forecast-metrics-row" role="region" aria-label="Métricas de previsão">
+                    <div class="forecast-metric-tile forecast-metric-tile-accuracy">
+                      <span class="forecast-metric-icon" aria-hidden="true">◎</span>
+                      <span class="forecast-metric-value" id="forecast-tile-acuracia-produto">–</span>
+                      <span class="forecast-metric-label">Acurácia geral</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-mape">
+                      <span class="forecast-metric-icon" aria-hidden="true">📈</span>
+                      <span class="forecast-metric-value" id="forecast-tile-mape-produto">–</span>
+                      <span class="forecast-metric-label">MAPE</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-rmse">
+                      <span class="forecast-metric-icon" aria-hidden="true">!</span>
+                      <span class="forecast-metric-value" id="forecast-tile-rmse-produto">–</span>
+                      <span class="forecast-metric-label">RMSE</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-bias">
+                      <span class="forecast-metric-icon" aria-hidden="true">∿</span>
+                      <span class="forecast-metric-value" id="forecast-tile-bias-produto">–</span>
+                      <span class="forecast-metric-label">Bias</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-status" id="forecast-tile-status-wrap-produto">
+                      <span class="forecast-metric-value forecast-metric-status-text" id="forecast-tile-status-produto">–</span>
+                      <span class="forecast-metric-label">Status</span>
+                    </div>
+                  </div>
+                  <div class="forecast-legend">
+                    <p><strong>MAPE</strong> (Erro Percentual Absoluto Médio): quanto menor, melhor (&lt;5% excelente).</p>
+                    <p><strong>RMSE</strong> (Raiz do Erro Quadrático Médio): mede a precisão da previsão nas mesmas unidades dos dados.</p>
+                    <p><strong>Bias</strong> (Viés): erro médio da previsão. Valor positivo = superestimativa; negativo = subestimativa.</p>
+                  </div>
                   <div class="forecast-table-wrapper">
                     <table class="forecast-table" id="forecast-table-produto">
                       <thead>

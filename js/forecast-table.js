@@ -152,21 +152,24 @@
   }
 
   function updateForecastMetrics(rows) {
-    var elAcuracia = document.getElementById("forecast-tile-acuracia");
-    var elMape = document.getElementById("forecast-tile-mape");
-    var elRmse = document.getElementById("forecast-tile-rmse");
-    var elBias = document.getElementById("forecast-tile-bias");
-    var elStatus = document.getElementById("forecast-tile-status");
-    var wrapStatus = document.getElementById("forecast-tile-status-wrap");
-    if (!elAcuracia || !elMape || !elRmse || !elBias || !elStatus || !wrapStatus) return;
     var m = computeForecastMetrics(rows || []);
-    elAcuracia.textContent = m.acuraciaGeral != null ? m.acuraciaGeral.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%" : "–";
-    elMape.textContent = m.mape != null ? m.mape.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%" : "–";
-    elRmse.textContent = m.rmse != null ? Math.round(m.rmse).toLocaleString("pt-BR") : "–";
-    elBias.textContent = m.bias != null ? (m.bias >= 0 ? "+" : "") + m.bias.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "–";
-    elStatus.textContent = m.status ? m.status.label : "–";
-    wrapStatus.classList.remove("status-good", "status-medium", "status-bad", "status-neutral");
-    wrapStatus.classList.add(m.status ? "status-" + m.status.key : "status-neutral");
+    var suffixes = ["", "-produto"];
+    suffixes.forEach(function (suffix) {
+      var elAcuracia = document.getElementById("forecast-tile-acuracia" + suffix);
+      var elMape = document.getElementById("forecast-tile-mape" + suffix);
+      var elRmse = document.getElementById("forecast-tile-rmse" + suffix);
+      var elBias = document.getElementById("forecast-tile-bias" + suffix);
+      var elStatus = document.getElementById("forecast-tile-status" + suffix);
+      var wrapStatus = document.getElementById("forecast-tile-status-wrap" + suffix);
+      if (!elAcuracia || !elMape || !elRmse || !elBias || !elStatus || !wrapStatus) return;
+      elAcuracia.textContent = m.acuraciaGeral != null ? m.acuraciaGeral.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%" : "–";
+      elMape.textContent = m.mape != null ? m.mape.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%" : "–";
+      elRmse.textContent = m.rmse != null ? Math.round(m.rmse).toLocaleString("pt-BR") : "–";
+      elBias.textContent = m.bias != null ? (m.bias >= 0 ? "+" : "") + m.bias.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "–";
+      elStatus.textContent = m.status ? m.status.label : "–";
+      wrapStatus.classList.remove("status-good", "status-medium", "status-bad", "status-neutral");
+      wrapStatus.classList.add(m.status ? "status-" + m.status.key : "status-neutral");
+    });
   }
 
   function getForecastBaseUrl() {
