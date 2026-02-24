@@ -319,10 +319,8 @@
   }
 
   function fetchChartByProduct() {
-    var storeId = getStoreId();
     var productId = getProductId();
     var params = ["period=" + (currentPeriod === "annual" ? "annual" : "monthly")];
-    if (storeId) params.push("store_id=" + encodeURIComponent(storeId));
     if (productId) params.push("product_id=" + encodeURIComponent(productId));
     var url = getChartBaseUrl() + "/api/forecast-chart-by-product?" + params.join("&");
     return fetch(url).then(function (res) {

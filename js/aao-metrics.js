@@ -3,11 +3,12 @@
  */
 (function () {
   var elEstoqueOtimo = document.getElementById("aao-metric-estoque-otimo");
-  var elValorEstoque = document.getElementById("aao-metric-valor-estoque");
+  var elValorEstoqueOtimo = document.getElementById("aao-metric-valor-estoque-otimo");
   var elEstoqueAtual = document.getElementById("aao-metric-estoque-atual");
+  var elValorEstoqueReal = document.getElementById("aao-metric-valor-estoque-real");
   var elValorTooltipPreco = document.getElementById("aao-metric-valor-tooltip-preco");
   var elValorInfo = document.getElementById("aao-metric-valor-info");
-  if (!elEstoqueOtimo || !elValorEstoque) return;
+  if (!elEstoqueOtimo || !elValorEstoqueOtimo) return;
 
   function getBaseUrl() {
     var p = window.location.pathname || "/";
@@ -43,7 +44,7 @@
     }
     elValorTooltipPreco.textContent = text;
     if (elValorInfo) {
-      elValorInfo.setAttribute("title", "Valor de estoque = Estoque ótimo × Preço unitário. " + text);
+      elValorInfo.setAttribute("title", "Valor de estoque ótimo = Estoque ótimo × Preço unitário. " + text);
     }
   }
 
@@ -51,8 +52,9 @@
     var productId = getProductId();
     if (!productId) {
       elEstoqueOtimo.textContent = "–";
-      elValorEstoque.textContent = "–";
+      elValorEstoqueOtimo.textContent = "–";
       if (elEstoqueAtual) elEstoqueAtual.textContent = "–";
+      if (elValorEstoqueReal) elValorEstoqueReal.textContent = "–";
       setValorTooltipPreco(null);
       return;
     }
@@ -69,20 +71,23 @@
       .then(function (data) {
         if (!data) {
           elEstoqueOtimo.textContent = "–";
-          elValorEstoque.textContent = "–";
+          elValorEstoqueOtimo.textContent = "–";
           if (elEstoqueAtual) elEstoqueAtual.textContent = "–";
+          if (elValorEstoqueReal) elValorEstoqueReal.textContent = "–";
           setValorTooltipPreco(null);
           return;
         }
         elEstoqueOtimo.textContent = data.estoque_otimo != null ? formatNum(data.estoque_otimo) + " un." : "–";
-        elValorEstoque.textContent = data.valor_estoque != null ? formatCurrency(data.valor_estoque) : "–";
+        elValorEstoqueOtimo.textContent = data.valor_estoque != null ? formatCurrency(data.valor_estoque) : "–";
         if (elEstoqueAtual) elEstoqueAtual.textContent = data.estoque_atual != null ? formatNum(data.estoque_atual) + " un." : "–";
+        if (elValorEstoqueReal) elValorEstoqueReal.textContent = data.valor_estoque_atual != null ? formatCurrency(data.valor_estoque_atual) : "–";
         setValorTooltipPreco(data.preco_unitario);
       })
       .catch(function () {
         elEstoqueOtimo.textContent = "–";
-        elValorEstoque.textContent = "–";
+        elValorEstoqueOtimo.textContent = "–";
         if (elEstoqueAtual) elEstoqueAtual.textContent = "–";
+        if (elValorEstoqueReal) elValorEstoqueReal.textContent = "–";
         setValorTooltipPreco(null);
       });
   }

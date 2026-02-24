@@ -135,12 +135,12 @@
             </div>
             <div class="aao-metric-card aao-metric-tile aao-metric-2">
               <div class="aao-metric-tile-header">
-                <span class="aao-metric-label">Valor de estoque</span>
+                <span class="aao-metric-label">Valor de estoque ótimo</span>
                 <span class="aao-metric-info" id="aao-metric-valor-info" role="button" tabindex="0" aria-label="Como foi calculado">i</span>
               </div>
-              <span class="aao-metric-value aao-metric-value-currency" id="aao-metric-valor-estoque" aria-live="polite">–</span>
+              <span class="aao-metric-value aao-metric-value-currency" id="aao-metric-valor-estoque-otimo" aria-live="polite">–</span>
               <div class="aao-metric-tooltip" id="aao-metric-valor-tooltip" role="tooltip" aria-hidden="true">
-                Valor de estoque = Estoque ótimo × Preço unitário. <span id="aao-metric-valor-tooltip-preco">Preço unitário: –</span>
+                Valor de estoque ótimo = Estoque ótimo × Preço unitário. <span id="aao-metric-valor-tooltip-preco">Preço unitário: –</span>
               </div>
             </div>
             <div class="aao-metric-card aao-metric-tile aao-metric-3">
@@ -148,6 +148,12 @@
                 <span class="aao-metric-label">Estoque atual</span>
               </div>
               <span class="aao-metric-value" id="aao-metric-estoque-atual" aria-live="polite">–</span>
+            </div>
+            <div class="aao-metric-card aao-metric-tile aao-metric-4">
+              <div class="aao-metric-tile-header">
+                <span class="aao-metric-label">Valor de estoque (base real)</span>
+              </div>
+              <span class="aao-metric-value aao-metric-value-currency" id="aao-metric-valor-estoque-real" aria-live="polite">–</span>
             </div>
           </div>
         </div>
@@ -233,6 +239,21 @@
                         </tr>
                       </tbody>
                     </table>
+                    <div class="forecast-table-pagination" id="forecast-pagination-loja" aria-label="Paginação da tabela por loja">
+                      <span class="forecast-pagination-info" id="forecast-pagination-info-loja"></span>
+                      <label for="forecast-page-size-loja" class="forecast-pagination-label">Itens por página</label>
+                      <select id="forecast-page-size-loja" class="forecast-pagination-select" aria-label="Itens por página">
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                      </select>
+                      <div class="forecast-pagination-btns">
+                        <button type="button" class="forecast-pagination-btn" id="forecast-pagination-prev-loja" aria-label="Página anterior">Anterior</button>
+                        <span class="forecast-pagination-pages" id="forecast-pagination-pages-loja"></span>
+                        <button type="button" class="forecast-pagination-btn" id="forecast-pagination-next-loja" aria-label="Próxima página">Próxima</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -298,8 +319,6 @@
                     <table class="forecast-table" id="forecast-table-produto">
                       <thead>
                         <tr>
-                          <th class="sortable" data-sort="parceiro" scope="col">Loja</th>
-                          <th class="sortable" data-sort="regiao" scope="col">Região</th>
                           <th class="sortable" data-sort="periodo" scope="col">Período</th>
                           <th class="sortable" data-sort="product_name" scope="col">Produto</th>
                           <th class="sortable" data-sort="vendas" scope="col">Vendas (un.)</th>
@@ -310,10 +329,25 @@
                       </thead>
                       <tbody id="forecast-tbody-produto">
                         <tr class="forecast-loading" id="forecast-loading-row-produto">
-                          <td colspan="8">Carregando…</td>
+                          <td colspan="6">Carregando…</td>
                         </tr>
                       </tbody>
                     </table>
+                    <div class="forecast-table-pagination" id="forecast-pagination-produto" aria-label="Paginação da tabela por produto">
+                      <span class="forecast-pagination-info" id="forecast-pagination-info-produto"></span>
+                      <label for="forecast-page-size-produto" class="forecast-pagination-label">Itens por página</label>
+                      <select id="forecast-page-size-produto" class="forecast-pagination-select" aria-label="Itens por página">
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                      </select>
+                      <div class="forecast-pagination-btns">
+                        <button type="button" class="forecast-pagination-btn" id="forecast-pagination-prev-produto" aria-label="Página anterior">Anterior</button>
+                        <span class="forecast-pagination-pages" id="forecast-pagination-pages-produto"></span>
+                        <button type="button" class="forecast-pagination-btn" id="forecast-pagination-next-produto" aria-label="Próxima página">Próxima</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -329,9 +363,12 @@
           <div class="driver-view-header-content">
             <h1>Visão do Motorista</h1>
             <p class="driver-view-sub">Status dos módulos do veículo</p>
-            <div id="drive-safety-flag" class="drive-safety-flag" role="status" aria-live="polite">
-              <span class="drive-safety-dot"></span>
-              <span class="drive-safety-text">Carregando…</span>
+            <div class="driver-view-header-tiles">
+              <div id="drive-safety-flag" class="drive-safety-flag" role="status" aria-live="polite">
+                <span class="drive-safety-dot"></span>
+                <span class="drive-safety-text">Carregando…</span>
+              </div>
+              <p class="driver-view-nearest-store-msg">A loja mais próxima é Loja VW #1 em São Paulo. Procure o João Silva. Ele já sabe sobre o seu problema.</p>
             </div>
           </div>
           <button type="button" class="otto-trigger" id="otto-trigger" aria-label="Fala, Otto! Pergunte sobre seu carro">

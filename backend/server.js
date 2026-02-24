@@ -123,7 +123,13 @@ app.get("/health", (req, res) => {
 });
 
 // ---------- Forecast (Databricks SQL) ----------
-const DATABRICKS_HOST = (process.env.DATABRICKS_HOST || process.env.DATABRICKS_INSTANCE || "").replace(/\/$/, "");
+function normalizeDatabricksHost(raw) {
+  const s = (raw || "").trim().replace(/\/+$/, "");
+  if (!s) return "";
+  if (/^https?:\/\//i.test(s)) return s;
+  return "https://" + s;
+}
+const DATABRICKS_HOST = normalizeDatabricksHost(process.env.DATABRICKS_HOST || process.env.DATABRICKS_INSTANCE || "");
 const DATABRICKS_WAREHOUSE_ID = (process.env.DATABRICKS_WAREHOUSE_ID || "").trim();
 const SQL_TOKEN = process.env.KA_TOKEN || process.env.ka_token || process.env.secret || "";
 
@@ -160,43 +166,37 @@ LIMIT 100
 }
 
 const catalogProduct = "leticia_demo_automobilistic_1_catalog.default";
+const TABLE_STORE4_PROD_FORECAST = "leticia_demo_automobilistic_1_catalog.default.sales_br_store4_monthly_prod_forecast_union_hist";
 
 function buildForecastByProductSql(storeId, productId) {
-  const storeFilter =
-    storeId != null && storeId !== "" && !isNaN(Number(storeId))
-      ? ` AND h.store_id = ${Number(storeId)}`
-      : "";
   const productFilter =
     productId != null && productId !== "" && !isNaN(Number(productId))
-      ? ` AND h.product_id = ${Number(productId)}`
+      ? ` AND u.product_id = ${Number(productId)}`
       : "";
   return `
 SELECT
-  s.store_name AS parceiro,
-  COALESCE(s.region, '') AS regiao,
-  CAST(h.year_month AS DATE) AS periodo,
-  h.product_id AS product_id,
+  u.product_id AS product_id,
   COALESCE(p.product_name, '') AS product_name,
   COALESCE(p.sku, '') AS product_sku,
-  COALESCE(CAST(h.sales_monthly AS DOUBLE), 0) AS vendas,
-  COALESCE(CAST(h.prediction AS DOUBLE), 0) AS previsao,
+  CAST(u.year_month AS DATE) AS periodo,
+  COALESCE(CAST(u.sales_monthly AS DOUBLE), 0) AS vendas,
+  COALESCE(CAST(u.sales_monthly_pred AS DOUBLE), 0) AS previsao,
   CASE
-    WHEN COALESCE(h.sales_monthly, 0) > 0
-    THEN ROUND(100.0 * COALESCE(h.prediction, 0) / h.sales_monthly, 1)
+    WHEN COALESCE(u.sales_monthly, 0) > 0
+    THEN ROUND(100.0 * COALESCE(u.sales_monthly_pred, 0) / u.sales_monthly, 1)
     ELSE NULL
   END AS acuracia_pct,
   CASE
-    WHEN COALESCE(h.sales_monthly, 0) = 0 THEN 'medio'
-    WHEN h.prediction IS NULL THEN 'medio'
-    WHEN (h.prediction / h.sales_monthly) > 1.2 THEN 'alto'
-    WHEN (h.prediction / h.sales_monthly) < 0.8 THEN 'baixo'
+    WHEN COALESCE(u.sales_monthly, 0) = 0 THEN 'medio'
+    WHEN u.sales_monthly_pred IS NULL THEN 'medio'
+    WHEN (u.sales_monthly_pred / u.sales_monthly) > 1.2 THEN 'alto'
+    WHEN (u.sales_monthly_pred / u.sales_monthly) < 0.8 THEN 'baixo'
     ELSE 'medio'
   END AS risco_estoque
-FROM ${catalogProduct}.sales_br_forecast_by_product_store_monthly_historic h
-LEFT JOIN ${catalogProduct}.stores_br s ON h.store_id = s.store_id
-LEFT JOIN ${catalogProduct}.products_br p ON h.product_id = p.product_id
-WHERE 1=1${storeFilter}${productFilter}
-ORDER BY h.year_month DESC, s.store_name, p.product_name, h.product_id
+FROM ${TABLE_STORE4_PROD_FORECAST} u
+LEFT JOIN ${catalogProduct}.products_br p ON u.product_id = p.product_id
+WHERE 1=1${productFilter}
+ORDER BY u.year_month DESC, p.product_name, u.product_id
 LIMIT 500
 `;
 }
@@ -327,40 +327,35 @@ const filtersHandler = async (req, res) => {
 app.get("/api/filters", filtersHandler);
 app.get(/\/api\/filters\/?$/, filtersHandler);
 
-// ---------- Métricas produto: estoque ótimo e valor de estoque ----------
+// ---------- Métricas produto: estoque ótimo, valor de estoque ótimo, estoque atual, valor de estoque (base real) ----------
+// Estoque atual e valor de estoque real: stock_br (stock_quantity) + products_br (price). Loja padrão 4.
 const catalogDefault = "leticia_demo_automobilistic_1_catalog.default";
+const DEFAULT_STORE_ID_METRICS = 4;
 
 app.get("/api/metrics-product", async (req, res) => {
   try {
     const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
-    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    let storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    if (!storeId || isNaN(Number(storeId))) storeId = String(DEFAULT_STORE_ID_METRICS);
 
     if (!productId) {
-      return res.json({ estoque_otimo: null, valor_estoque: null, estoque_atual: null });
+      return res.json({ estoque_otimo: null, valor_estoque: null, estoque_atual: null, valor_estoque_atual: null });
     }
 
     if (!isSqlConfigured()) {
-      return res.json({ estoque_otimo: null, valor_estoque: null, estoque_atual: null });
+      return res.json({ estoque_otimo: null, valor_estoque: null, estoque_atual: null, valor_estoque_atual: null });
     }
 
-    const storeFilterStock =
-      storeId && !isNaN(Number(storeId))
-        ? ` AND id_store = ${Number(storeId)}`
-        : "";
-
-    const storeFilterForecast =
-      storeId && !isNaN(Number(storeId)) ? ` AND f.store_id = ${Number(storeId)}` : "";
+    const storeIdNum = !isNaN(Number(storeId)) ? Number(storeId) : DEFAULT_STORE_ID_METRICS;
 
     const [forecastResult, priceResult, stockResult] = await Promise.all([
       runDatabricksSql(`
 SELECT
-  SUM(COALESCE(CAST(f.sales_forecast AS DOUBLE), 0)) AS soma_forecast,
-  COUNT(DISTINCT f.year_month) AS meses
-FROM ${catalogDefault}.sales_br_forecast_by_product_store_monthly f
-WHERE 1=1
-  ${storeFilterForecast}
-  AND f.product_id = ${Number(productId)}
-`),
+  AVG(COALESCE(CAST(sales_monthly_pred AS DOUBLE), 0)) AS media_pred,
+  COUNT(DISTINCT year_month) AS meses
+FROM ${TABLE_STORE4_PROD_FORECAST}
+WHERE product_id = ${Number(productId)}
+`).catch(() => ({ rows: [] })),
       runDatabricksSql(`
 SELECT COALESCE(CAST(price AS DOUBLE), 0) AS price
 FROM ${catalogDefault}.products_br
@@ -370,36 +365,42 @@ LIMIT 1
       runDatabricksSql(`
 SELECT COALESCE(SUM(CAST(stock_quantity AS BIGINT)), 0) AS qtd
 FROM ${catalogDefault}.stock_br
-WHERE id_product = ${Number(productId)}${storeFilterStock}
+WHERE id_product = ${Number(productId)} AND id_store = ${storeIdNum}
 `).catch(() => ({ rows: [] })),
     ]);
 
-    const row = (forecastResult.rows && forecastResult.rows[0]) || {};
-    const somaForecast = row.soma_forecast != null ? Number(row.soma_forecast) : null;
-    const meses = row.meses != null ? Number(row.meses) : 0;
+    const forecastRow = (forecastResult && forecastResult.rows && forecastResult.rows[0]) || {};
+    const mediaPred = forecastRow.media_pred != null ? Number(forecastRow.media_pred) : null;
+    const meses = forecastRow.meses != null ? Number(forecastRow.meses) : 0;
 
     let estoque_otimo = null;
-    if (somaForecast != null && meses > 0) {
-      const mediaMensal = somaForecast / meses;
-      estoque_otimo = Math.round(mediaMensal * 1.2);
+    if (mediaPred != null && meses > 0 && !isNaN(mediaPred)) {
+      estoque_otimo = Math.round(mediaPred * 1.2);
     }
 
     const priceRow = (priceResult.rows && priceResult.rows[0]) || {};
     const precoUnitario = priceRow.price != null ? Number(priceRow.price) : null;
+
+    const stockRow = (stockResult && stockResult.rows && stockResult.rows[0]) || {};
+    const estoque_atual =
+      stockRow.qtd != null && !isNaN(Number(stockRow.qtd)) ? Number(stockRow.qtd) : null;
+
     const valor_estoque =
       estoque_otimo != null && precoUnitario != null && !isNaN(estoque_otimo) && !isNaN(precoUnitario)
         ? estoque_otimo * precoUnitario
         : null;
 
-    const stockRow = (stockResult && stockResult.rows && stockResult.rows[0]) || {};
-    const estoque_atual =
-      stockRow.qtd != null && !isNaN(Number(stockRow.qtd)) ? Number(stockRow.qtd) : null;
+    const valor_estoque_atual =
+      estoque_atual != null && precoUnitario != null && !isNaN(estoque_atual) && !isNaN(precoUnitario)
+        ? estoque_atual * precoUnitario
+        : null;
 
     return res.json({
       estoque_otimo: estoque_otimo,
       valor_estoque: valor_estoque,
       preco_unitario: precoUnitario,
       estoque_atual: estoque_atual,
+      valor_estoque_atual: valor_estoque_atual,
     });
   } catch (err) {
     console.error("[metrics-product]", err);
@@ -541,43 +542,33 @@ const forecastChartHandler = async (req, res) => {
 app.get("/api/forecast-chart", forecastChartHandler);
 app.get(/\/api\/forecast-chart\/?$/, forecastChartHandler);
 
-// Tabelas para gráfico Por produto: histórico + previsão futura
-const TABLE_HISTORIC_BY_PRODUCT = "leticia_demo_automobilistic_1_catalog.default.sales_br_forecast_by_product_store_monthly_historic";
-const TABLE_FUTURE_BY_PRODUCT = "leticia_demo_automobilistic_1_catalog.default.sales_br_forecast_by_product_store_monthly";
+// Gráfico Por produto: tabela única histórico + futuro (Loja 4)
+// leticia_demo_automobilistic_1_catalog.default.sales_br_store4_monthly_prod_forecast_union_hist
 
-function buildChartHistoricByProductSql(storeId, productId) {
-  const storeFilter =
-    storeId != null && storeId !== "" && !isNaN(Number(storeId))
-      ? ` AND store_id = ${Number(storeId)}`
-      : "";
+function buildChartByProductUnionSql(productId) {
   const productFilter =
     productId != null && productId !== "" && !isNaN(Number(productId))
       ? ` AND product_id = ${Number(productId)}`
       : "";
-  return `
-SELECT CAST(year_month AS DATE) AS period,
-  SUM(COALESCE(CAST(sales_monthly AS DOUBLE), 0)) AS actual,
-  SUM(COALESCE(CAST(prediction AS DOUBLE), 0)) AS forecast
-FROM ${TABLE_HISTORIC_BY_PRODUCT}
-WHERE 1=1${storeFilter}${productFilter}
-GROUP BY CAST(year_month AS DATE)
-ORDER BY period
+  if (productFilter) {
+    return `
+SELECT
+  CAST(year_month AS DATE) AS period,
+  COALESCE(CAST(sales_monthly AS DOUBLE), 0) AS actual,
+  COALESCE(CAST(sales_monthly_pred AS DOUBLE), 0) AS forecast,
+  COALESCE(CAST(is_future AS BOOLEAN), false) AS is_future
+FROM ${TABLE_STORE4_PROD_FORECAST}
+WHERE 1=1${productFilter}
+ORDER BY year_month
 `;
-}
-
-function buildChartFutureByProductSql(storeId, productId) {
-  const storeFilter =
-    storeId != null && storeId !== "" && !isNaN(Number(storeId))
-      ? ` AND store_id = ${Number(storeId)}`
-      : "";
-  const productFilter =
-    productId != null && productId !== "" && !isNaN(Number(productId))
-      ? ` AND product_id = ${Number(productId)}`
-      : "";
+  }
   return `
-SELECT CAST(year_month AS DATE) AS period, SUM(COALESCE(CAST(sales_forecast AS DOUBLE), 0)) AS forecast
-FROM ${TABLE_FUTURE_BY_PRODUCT}
-WHERE 1=1${storeFilter}${productFilter}
+SELECT
+  CAST(year_month AS DATE) AS period,
+  SUM(COALESCE(CAST(sales_monthly AS DOUBLE), 0)) AS actual,
+  SUM(COALESCE(CAST(sales_monthly_pred AS DOUBLE), 0)) AS forecast,
+  MAX(CAST(COALESCE(is_future, false) AS INT)) = 1 AS is_future
+FROM ${TABLE_STORE4_PROD_FORECAST}
 GROUP BY CAST(year_month AS DATE)
 ORDER BY period
 `;
@@ -597,48 +588,28 @@ const forecastChartByProductHandler = async (req, res) => {
         error: "Chart por produto não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token.",
       });
     }
-    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
     const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
     const period = (req.query.period === "annual" || req.query.period === "anual") ? "annual" : "monthly";
 
-    const [historicResult, futureResult] = await Promise.all([
-      runDatabricksSql(buildChartHistoricByProductSql(storeId, productId)),
-      runDatabricksSql(buildChartFutureByProductSql(storeId, productId)),
-    ]);
+    const result = await runDatabricksSql(buildChartByProductUnionSql(productId));
+    const rows = result.rows || [];
 
-    const historicRows = historicResult.rows || [];
-    const futureRows = futureResult.rows || [];
-
-    const maxHistoricTime = historicRows.length
-      ? Math.max(...historicRows.map((r) => (r.period ? new Date(r.period).getTime() : 0)))
-      : 0;
-
-    const historicPoints = historicRows.map((r) => ({
-      period: toPeriodStr(r.period),
-      actual: r.actual != null ? Number(r.actual) : null,
-      forecast: r.forecast != null ? Number(r.forecast) : null,
-      isFuture: false,
-    }));
-
-    const futurePoints = futureRows
-      .filter((r) => r.period && new Date(r.period).getTime() > maxHistoricTime)
-      .map((r) => ({
+    let data = rows.map((r) => {
+      const isFuture = r.is_future === true || r.is_future === "true";
+      return {
         period: toPeriodStr(r.period),
-        actual: null,
+        actual: isFuture ? null : (r.actual != null ? Number(r.actual) : null),
         forecast: r.forecast != null ? Number(r.forecast) : null,
-        isFuture: true,
-      }));
-
-    let data = [...historicPoints, ...futurePoints].sort(
-      (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime()
-    );
+        isFuture,
+      };
+    });
 
     if (period === "annual") {
       const byYear = {};
       data.forEach((d) => {
         const y = new Date(d.period).getFullYear();
-        if (!byYear[y]) byYear[y] = { period: String(y), actual: 0, forecast: 0, isFuture: d.isFuture };
-        if (d.actual != null) byYear[y].actual += d.actual;
+        if (!byYear[y]) byYear[y] = { period: String(y), actual: 0, forecast: 0, isFuture: d.isFuture, hasActual: false };
+        if (d.actual != null) { byYear[y].actual += d.actual; byYear[y].hasActual = true; }
         if (d.forecast != null) byYear[y].forecast += d.forecast;
         byYear[y].isFuture = byYear[y].isFuture || d.isFuture;
       });
@@ -646,7 +617,7 @@ const forecastChartByProductHandler = async (req, res) => {
         .sort()
         .map((y) => ({
           period: y,
-          actual: byYear[y].actual || null,
+          actual: byYear[y].hasActual ? byYear[y].actual : null,
           forecast: byYear[y].forecast != null ? byYear[y].forecast : null,
           isFuture: byYear[y].isFuture,
         }));
@@ -669,7 +640,7 @@ const forecastChartByProductHandler = async (req, res) => {
 app.get("/api/forecast-chart-by-product", forecastChartByProductHandler);
 app.get(/\/api\/forecast-chart-by-product\/?$/, forecastChartByProductHandler);
 
-// Legado: só futuro (frontend pode usar o novo endpoint acima)
+// Legado: só futuro (frontend pode usar o endpoint forecast-chart-by-product)
 app.get("/api/forecast-chart-future-by-product", async (req, res) => {
   try {
     if (!isSqlConfigured()) {
@@ -677,9 +648,14 @@ app.get("/api/forecast-chart-future-by-product", async (req, res) => {
         error: "Chart futuro por produto não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token.",
       });
     }
-    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
     const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
-    const sql = buildChartFutureByProductSql(storeId, productId);
+    const sql = `
+SELECT CAST(year_month AS DATE) AS period, COALESCE(CAST(sales_monthly_pred AS DOUBLE), 0) AS forecast
+FROM ${TABLE_STORE4_PROD_FORECAST}
+WHERE COALESCE(CAST(is_future AS BOOLEAN), false) = true
+${productId != null && productId !== "" && !isNaN(Number(productId)) ? ` AND product_id = ${Number(productId)}` : ""}
+ORDER BY year_month
+`;
     const { rows } = await runDatabricksSql(sql);
     const data = (rows || []).map((r) => ({
       period: toPeriodStr(r.period),

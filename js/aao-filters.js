@@ -19,10 +19,14 @@
   }
 
   var defaultStoreName = "Loja VW #4";
+  var defaultStoreId = 4;
   var defaultProductCode = "SKU000003";
+  var defaultProductId = 1;
 
   function applyDefaultProduct() {
     var defaultProduct = (productsList || []).filter(function (p) {
+      var id = p.id != null ? Number(p.id) : NaN;
+      if (id === defaultProductId) return true;
       var code = (p.code != null ? String(p.code) : "").trim().toUpperCase();
       return code === defaultProductCode.toUpperCase();
     })[0];
@@ -48,6 +52,8 @@
       selectLoja.appendChild(opt);
     });
     var defaultStore = storeList.filter(function (s) {
+      var id = s.id != null ? Number(s.id) : NaN;
+      if (id === defaultStoreId) return true;
       var n = (s.name != null ? String(s.name) : "").trim();
       return n.toLowerCase() === defaultStoreName.toLowerCase();
     })[0];

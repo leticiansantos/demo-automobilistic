@@ -15,7 +15,9 @@
 
   var lastRowsByTable = { 0: [], 1: [] };
   var sortState = { 0: { key: null, asc: true }, 1: { key: null, asc: true } };
+  var paginationState = { 0: { page: 1, pageSize: 10 }, 1: { page: 1, pageSize: 10 } };
   var PRODUTO_TABLE_ID = "forecast-table-produto";
+  var PAGINATION_SUFFIX = ["loja", "produto"];
 
   function formatNum(n) {
     if (n == null || n === "" || isNaN(Number(n))) return "–";
@@ -145,8 +147,6 @@
     var riscoLabel = risco === "alto" ? "Alto" : risco === "medio" ? "Médio" : risco === "baixo" ? "Baixo" : "–";
     var riscoClass = risco === "alto" ? "risco-alto" : risco === "medio" ? "risco-medio" : risco === "baixo" ? "risco-baixo" : "";
     return (
-      "<td>" + (r.parceiro != null ? String(r.parceiro) : "–") + "</td>" +
-      "<td>" + (r.regiao != null ? String(r.regiao) : "–") + "</td>" +
       "<td>" + formatDate(r.periodo) + "</td>" +
       "<td>" + formatProdutoCell(r) + "</td>" +
       "<td>" + formatNum(vendas) + "</td>" +
@@ -161,7 +161,7 @@
     if (!t) return;
     var tb = t.tbody;
     var isProduto = targetIndex === 1;
-    var colspan = isProduto ? 8 : 6;
+    var colspan = isProduto ? 6 : 6;
     tb.innerHTML = "";
     if (!rows || rows.length === 0) {
       var tr = document.createElement("tr");
@@ -174,6 +174,41 @@
       tr.innerHTML = isProduto ? renderRowProduto(r) : renderRowLoja(r);
       tb.appendChild(tr);
     });
+  }
+
+  function getSortedRows(targetIndex) {
+    var rows = lastRowsByTable[targetIndex] || [];
+    var state = sortState[targetIndex];
+    return state.key ? sortRows(rows, state.key, state.asc) : rows;
+  }
+
+  function renderTablePage(targetIndex) {
+    var fullRows = getSortedRows(targetIndex);
+    var total = fullRows.length;
+    var ps = paginationState[targetIndex];
+    var page = Math.max(1, Math.min(ps.page, total === 0 ? 1 : Math.ceil(total / ps.pageSize)));
+    ps.page = page;
+    var start = (page - 1) * ps.pageSize;
+    var end = Math.min(start + ps.pageSize, total);
+    var pageRows = fullRows.slice(start, end);
+    renderRows(pageRows, targetIndex);
+    updatePaginationUI(targetIndex, total);
+  }
+
+  function updatePaginationUI(targetIndex, total) {
+    var suffix = PAGINATION_SUFFIX[targetIndex];
+    var infoEl = document.getElementById("forecast-pagination-info-" + suffix);
+    var pagesEl = document.getElementById("forecast-pagination-pages-" + suffix);
+    var prevBtn = document.getElementById("forecast-pagination-prev-" + suffix);
+    var nextBtn = document.getElementById("forecast-pagination-next-" + suffix);
+    var ps = paginationState[targetIndex];
+    var totalPages = total === 0 ? 1 : Math.ceil(total / ps.pageSize);
+    var start = total === 0 ? 0 : (ps.page - 1) * ps.pageSize + 1;
+    var end = Math.min(ps.page * ps.pageSize, total);
+    if (infoEl) infoEl.textContent = total === 0 ? "0 registros" : start + "–" + end + " de " + total.toLocaleString("pt-BR") + " registros";
+    if (pagesEl) pagesEl.textContent = "Página " + ps.page + " de " + totalPages;
+    if (prevBtn) prevBtn.disabled = ps.page <= 1;
+    if (nextBtn) nextBtn.disabled = ps.page >= totalPages || total === 0;
   }
 
   function computeForecastMetrics(rows) {
@@ -269,7 +304,6 @@
     var qsLoja = [];
     if (params.storeId) qsLoja.push("store_id=" + encodeURIComponent(params.storeId));
     var qsProduto = [];
-    if (params.storeId) qsProduto.push("store_id=" + encodeURIComponent(params.storeId));
     if (params.productId) qsProduto.push("product_id=" + encodeURIComponent(params.productId));
     var urlLoja = base + "/api/forecast" + (qsLoja.length ? "?" + qsLoja.join("&") : "");
     var urlProduto = base + "/api/forecast-by-product" + (qsProduto.length ? "?" + qsProduto.join("&") : "");
@@ -284,12 +318,14 @@
         targets.forEach(function (t) { if (t.loadingRow) t.loadingRow.style.display = "none"; });
         lastRowsByTable[0] = lojaRows;
         lastRowsByTable[1] = prodRows;
+        paginationState[0].page = 1;
+        paginationState[1].page = 1;
         var s0 = sortState[0];
         var s1 = sortState[1];
-        renderRows(s0.key ? sortRows(lojaRows, s0.key, s0.asc) : lojaRows, 0);
-        renderRows(s1.key ? sortRows(prodRows, s1.key, s1.asc) : prodRows, 1);
         updateSortHeader(s0.key, s0.asc, 0);
         updateSortHeader(s1.key, s1.asc, 1);
+        renderTablePage(0);
+        renderTablePage(1);
         updateForecastMetrics(lojaRows, "");
         updateForecastMetrics(prodRows, "-produto");
         if (typeof window.updateForecastChartFromTableData === "function") {
@@ -303,10 +339,14 @@
           if (t.loadingRow) t.loadingRow.style.display = "none";
           t.tbody.innerHTML = "";
           var tr = document.createElement("tr");
-          var colspan = t.table.id === PRODUTO_TABLE_ID ? 8 : 6;
+          var colspan = t.table.id === PRODUTO_TABLE_ID ? 6 : 6;
           tr.innerHTML = "<td colspan=\"" + colspan + "\">Erro ao carregar: " + (err.message || "Erro desconhecido") + ".</td>";
           t.tbody.appendChild(tr);
         });
+        lastRowsByTable[0] = [];
+        lastRowsByTable[1] = [];
+        updatePaginationUI(0, 0);
+        updatePaginationUI(1, 0);
         updateForecastMetrics([], "");
         updateForecastMetrics([], "-produto");
       });
@@ -326,11 +366,34 @@
         var state = sortState[targetIndex];
         if (state.key === key) state.asc = !state.asc;
         else { state.key = key; state.asc = true; }
-        var rows = lastRowsByTable[targetIndex] || [];
-        var sorted = sortRows(rows, state.key, state.asc);
-        renderRows(sorted, targetIndex);
+        paginationState[targetIndex].page = 1;
         updateSortHeader(state.key, state.asc, targetIndex);
+        renderTablePage(targetIndex);
       });
+    });
+  });
+
+  PAGINATION_SUFFIX.forEach(function (suffix, targetIndex) {
+    var prevBtn = document.getElementById("forecast-pagination-prev-" + suffix);
+    var nextBtn = document.getElementById("forecast-pagination-next-" + suffix);
+    var pageSizeSelect = document.getElementById("forecast-page-size-" + suffix);
+    if (prevBtn) prevBtn.addEventListener("click", function () {
+      var ps = paginationState[targetIndex];
+      if (ps.page > 1) { ps.page--; renderTablePage(targetIndex); }
+    });
+    if (nextBtn) nextBtn.addEventListener("click", function () {
+      var ps = paginationState[targetIndex];
+      var total = (getSortedRows(targetIndex) || []).length;
+      var totalPages = total === 0 ? 1 : Math.ceil(total / ps.pageSize);
+      if (ps.page < totalPages) { ps.page++; renderTablePage(targetIndex); }
+    });
+    if (pageSizeSelect) pageSizeSelect.addEventListener("change", function () {
+      var val = parseInt(pageSizeSelect.value, 10);
+      if (!isNaN(val) && val > 0) {
+        paginationState[targetIndex].pageSize = val;
+        paginationState[targetIndex].page = 1;
+        renderTablePage(targetIndex);
+      }
     });
   });
 

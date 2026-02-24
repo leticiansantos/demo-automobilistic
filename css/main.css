@@ -794,7 +794,8 @@ body {
 
 .aao-metric-1,
 .aao-metric-2,
-.aao-metric-3 {
+.aao-metric-3,
+.aao-metric-4 {
   position: relative;
 }
 
@@ -1265,6 +1266,76 @@ body {
   min-height: 200px;
 }
 
+.forecast-table-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 12px 0 8px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(0, 33, 87, 0.12);
+  font-size: 0.875rem;
+  color: var(--vw-navy);
+}
+
+.forecast-pagination-info {
+  margin-right: 8px;
+}
+
+.forecast-pagination-label {
+  margin: 0 4px 0 0;
+  font-weight: 500;
+  color: var(--vw-navy);
+  opacity: 0.9;
+}
+
+.forecast-pagination-select {
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 33, 87, 0.25);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--vw-navy);
+  background: var(--vw-white);
+  cursor: pointer;
+}
+
+.forecast-pagination-btns {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.forecast-pagination-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 33, 87, 0.25);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--vw-navy);
+  background: var(--vw-white);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.forecast-pagination-btn:hover:not(:disabled) {
+  background: rgba(0, 147, 208, 0.08);
+  border-color: var(--accent);
+}
+
+.forecast-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.forecast-pagination-pages {
+  font-weight: 500;
+  color: var(--vw-navy);
+  opacity: 0.9;
+}
+
 .forecast-table {
   width: 100%;
   border-collapse: collapse;
@@ -1518,6 +1589,23 @@ body {
   transform: scale(0.98);
 }
 
+.driver-view-header-tiles {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.driver-view-nearest-store-msg {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--vw-navy);
+  opacity: 0.9;
+  line-height: 1.45;
+  max-width: 420px;
+}
+
 .drive-safety-flag {
   display: inline-flex;
   align-items: center;
@@ -1526,7 +1614,6 @@ body {
   border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 24px;
 }
 
 .drive-safety-flag .drive-safety-dot {
