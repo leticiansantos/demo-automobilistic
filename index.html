@@ -22,16 +22,13 @@
           <a href="#dashboard" data-panel="dashboard" class="active">Visão de Mercado</a>
         </li>
         <li class="nav-item">
-          <a href="#genie" data-panel="genie">Pergunte sobre o seu negócio</a>
+          <a href="#pac" data-panel="pac">Visão Pós-venda</a>
         </li>
         <li class="nav-item">
           <a href="#motorista" data-panel="motorista">Visão do Motorista</a>
         </li>
         <li class="nav-item">
-          <a href="#pac" data-panel="pac">Visão PAC</a>
-        </li>
-        <li class="nav-item">
-          <a href="#centralizada" data-panel="centralizada">Visão Centralizada</a>
+          <a href="#genie" data-panel="genie">Pergunte sobre o seu negócio</a>
         </li>
       </ul>
     </div>
@@ -94,16 +91,158 @@
       -->
     </section>
 
-    <section id="panel-genie" class="panel">
-      <div class="panel-genie-actions">
-        <a
-          id="genie-open-new-tab"
-          href="https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/one"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="panel-genie-cta">
-          Abrir Databricks One em nova aba
-        </a>
+    <section id="panel-pac" class="panel">
+      <div id="posvenda-view" class="posvenda-view">
+        <div class="posvenda-header">
+          <h1>Visão Pós-venda</h1>
+          <p class="posvenda-sub">Previsão de demanda e análise de estoque para peças e serviços.</p>
+        </div>
+
+        <div class="aao-box">
+          <div class="aao-box-top">
+            <h2 class="aao-box-title">Análises Avançadas e Otimização</h2>
+          </div>
+          <div class="aao-filters">
+            <div class="aao-filter-group aao-product-autocomplete-wrap">
+              <label for="aao-filter-produto" class="aao-filter-label">Produto</label>
+              <div class="aao-product-autocomplete">
+                <input type="text" id="aao-filter-produto" class="aao-filter-input aao-product-input" placeholder="Nome ou código do produto" autocomplete="off" aria-label="Filtrar por produto (nome ou código)" aria-autocomplete="list" aria-expanded="false" aria-controls="aao-product-suggestions">
+                <div id="aao-product-suggestions" class="aao-product-suggestions" role="listbox" aria-label="Sugestões de produto" hidden></div>
+              </div>
+              <input type="hidden" id="aao-filter-produto-id" name="aao-filter-produto-id" value="">
+            </div>
+            <div class="aao-filter-group">
+              <label for="aao-filter-loja" class="aao-filter-label">Loja</label>
+              <select id="aao-filter-loja" class="aao-filter-select" aria-label="Filtrar por loja">
+                <option value="">Todas as lojas</option>
+              </select>
+            </div>
+            <div class="aao-filter-group aao-filter-actions">
+              <span class="aao-filter-label" aria-hidden="true">&nbsp;</span>
+              <button type="button" id="aao-filters-clear" class="aao-btn-clear" aria-label="Limpar filtros">Limpar filtros</button>
+            </div>
+          </div>
+          <div class="aao-metrics">
+            <div class="aao-metric-card aao-metric-placeholder">
+              <span class="aao-metric-label">Métrica 1</span>
+              <span class="aao-metric-soon">Em breve</span>
+            </div>
+            <div class="aao-metric-card aao-metric-placeholder">
+              <span class="aao-metric-label">Métrica 2</span>
+              <span class="aao-metric-soon">Em breve</span>
+            </div>
+            <div class="aao-metric-card aao-metric-placeholder">
+              <span class="aao-metric-label">Métrica 3</span>
+              <span class="aao-metric-soon">Em breve</span>
+            </div>
+            <div class="aao-metric-card aao-metric-placeholder">
+              <span class="aao-metric-label">Métrica 4</span>
+              <span class="aao-metric-soon">Em breve</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="posvenda-tabs">
+          <div class="posvenda-tabs-list" role="tablist" aria-label="Análises por dimensão">
+            <button type="button" class="posvenda-tab active" role="tab" aria-selected="true" aria-controls="tab-por-loja" id="tab-btn-por-loja" data-tab="por-loja">Por loja</button>
+            <button type="button" class="posvenda-tab" role="tab" aria-selected="false" aria-controls="tab-por-produto" id="tab-btn-por-produto" data-tab="por-produto">Por produto</button>
+          </div>
+          <div class="posvenda-tabs-panels">
+            <div class="posvenda-tab-panel active" id="tab-por-loja" role="tabpanel" aria-labelledby="tab-btn-por-loja">
+              <div class="posvenda-content">
+                <div class="forecast-card">
+                  <div class="forecast-card-header">
+                    <h2 class="forecast-card-title">
+                      <span class="forecast-card-icon" aria-hidden="true">▦</span>
+                      Previsão de quantidade de vendas por Loja
+                    </h2>
+                  </div>
+                  <div class="forecast-metrics-row" role="region" aria-label="Métricas de previsão">
+                    <div class="forecast-metric-tile forecast-metric-tile-accuracy">
+                      <span class="forecast-metric-icon" aria-hidden="true">◎</span>
+                      <span class="forecast-metric-value" id="forecast-tile-acuracia">–</span>
+                      <span class="forecast-metric-label">Acurácia geral</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-mape">
+                      <span class="forecast-metric-icon" aria-hidden="true">📈</span>
+                      <span class="forecast-metric-value" id="forecast-tile-mape">–</span>
+                      <span class="forecast-metric-label">MAPE</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-rmse">
+                      <span class="forecast-metric-icon" aria-hidden="true">!</span>
+                      <span class="forecast-metric-value" id="forecast-tile-rmse">–</span>
+                      <span class="forecast-metric-label">RMSE</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-bias">
+                      <span class="forecast-metric-icon" aria-hidden="true">∿</span>
+                      <span class="forecast-metric-value" id="forecast-tile-bias">–</span>
+                      <span class="forecast-metric-label">Bias</span>
+                    </div>
+                    <div class="forecast-metric-tile forecast-metric-tile-status" id="forecast-tile-status-wrap">
+                      <span class="forecast-metric-value forecast-metric-status-text" id="forecast-tile-status">–</span>
+                      <span class="forecast-metric-label">Status</span>
+                    </div>
+                  </div>
+                  <div class="forecast-legend">
+                    <p><strong>MAPE</strong> (Erro Percentual Absoluto Médio): quanto menor, melhor (&lt;5% excelente).</p>
+                    <p><strong>RMSE</strong> (Raiz do Erro Quadrático Médio): mede a precisão da previsão nas mesmas unidades dos dados.</p>
+                    <p><strong>Bias</strong> (Viés): erro médio da previsão. Valor positivo = superestimativa; negativo = subestimativa.</p>
+                  </div>
+                  <div class="forecast-table-wrapper">
+                    <table class="forecast-table" id="forecast-table">
+                      <thead>
+                        <tr>
+                          <th class="sortable" data-sort="parceiro" scope="col">Loja</th>
+                          <th class="sortable" data-sort="regiao" scope="col">Região</th>
+                          <th class="sortable" data-sort="periodo" scope="col">Período</th>
+                          <th class="sortable" data-sort="vendas" scope="col">Vendas (un.)</th>
+                          <th class="sortable" data-sort="previsao" scope="col">Previsão</th>
+                          <th class="sortable" data-sort="acuracia_pct" scope="col">Acurácia (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody id="forecast-tbody">
+                        <tr class="forecast-loading" id="forecast-loading-row">
+                          <td colspan="6">Carregando…</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="posvenda-tab-panel" id="tab-por-produto" role="tabpanel" aria-labelledby="tab-btn-por-produto">
+              <div class="posvenda-content">
+                <div class="forecast-card">
+                  <div class="forecast-card-header">
+                    <h2 class="forecast-card-title">
+                      <span class="forecast-card-icon" aria-hidden="true">▦</span>
+                      Previsão de quantidade de vendas por Produto
+                    </h2>
+                  </div>
+                  <div class="forecast-table-wrapper">
+                    <table class="forecast-table" id="forecast-table-produto">
+                      <thead>
+                        <tr>
+                          <th class="sortable" data-sort="parceiro" scope="col">Loja</th>
+                          <th class="sortable" data-sort="regiao" scope="col">Região</th>
+                          <th class="sortable" data-sort="periodo" scope="col">Período</th>
+                          <th class="sortable" data-sort="vendas" scope="col">Vendas (un.)</th>
+                          <th class="sortable" data-sort="previsao" scope="col">Previsão</th>
+                          <th class="sortable" data-sort="acuracia_pct" scope="col">Acurácia (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody id="forecast-tbody-produto">
+                        <tr class="forecast-loading" id="forecast-loading-row-produto">
+                          <td colspan="6">Carregando…</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -166,17 +305,16 @@
       </div>
     </section>
 
-    <section id="panel-pac" class="panel">
-      <div class="panel-placeholder">
-        <h2>Visão PAC</h2>
-        <p>Conteúdo em breve.</p>
-      </div>
-    </section>
-
-    <section id="panel-centralizada" class="panel">
-      <div class="panel-placeholder">
-        <h2>Visão Centralizada</h2>
-        <p>Conteúdo em breve.</p>
+    <section id="panel-genie" class="panel">
+      <div class="panel-genie-actions">
+        <a
+          id="genie-open-new-tab"
+          href="https://fe-sandbox-leticia-demo-automobilistic-1.cloud.databricks.com/one"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="panel-genie-cta">
+          Abrir Databricks One em nova aba
+        </a>
       </div>
     </section>
   </main>
@@ -187,5 +325,8 @@
   <script src="js/otto-chat.js"></script>
   <script src="js/driver-view.js"></script>
   <script src="js/history.js"></script>
+  <script src="js/aao-filters.js"></script>
+  <script src="js/forecast-table.js"></script>
+  <script src="js/posvenda-tabs.js"></script>
 </body>
 </html>

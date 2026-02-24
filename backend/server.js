@@ -122,6 +122,147 @@ app.get("/health", (req, res) => {
   res.json({ ok: true, ka: isKAConfigured() });
 });
 
+// ---------- Forecast (Databricks SQL) ----------
+const DATABRICKS_HOST = (process.env.DATABRICKS_HOST || process.env.DATABRICKS_INSTANCE || "").replace(/\/$/, "");
+const DATABRICKS_WAREHOUSE_ID = (process.env.DATABRICKS_WAREHOUSE_ID || "").trim();
+const SQL_TOKEN = process.env.KA_TOKEN || process.env.ka_token || process.env.secret || "";
+
+function isSqlConfigured() {
+  return !!DATABRICKS_HOST && !!DATABRICKS_WAREHOUSE_ID && !!SQL_TOKEN;
+}
+
+function buildForecastSql(storeId, productId) {
+  const catalog = "leticia_demo_automobilistic_1_catalog.default";
+  const storeFilter =
+    storeId != null && storeId !== "" && !isNaN(Number(storeId))
+      ? ` AND h.store_id = ${Number(storeId)}`
+      : "";
+  return `
+SELECT
+  s.store_name AS parceiro,
+  s.region AS regiao,
+  CAST(h.year_month AS DATE) AS periodo,
+  COALESCE(CAST(h.sales_monthly AS DOUBLE), 0) AS vendas,
+  COALESCE(h.prediction, 0) AS previsao,
+  CASE
+    WHEN COALESCE(h.sales_monthly, 0) > 0
+    THEN ROUND(100.0 * COALESCE(h.prediction, 0) / h.sales_monthly, 1)
+    ELSE NULL
+  END AS acuracia_pct
+FROM ${catalog}.sales_br_forecast_qty_by_store_monthly_historic h
+LEFT JOIN ${catalog}.stores_br s ON h.store_id = s.store_id
+WHERE 1=1${storeFilter}
+ORDER BY h.year_month DESC, s.store_name
+LIMIT 100
+`;
+}
+
+async function runDatabricksSql(statement) {
+  const baseUrl = `${DATABRICKS_HOST}/api/2.0/sql/statements`;
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${SQL_TOKEN}`,
+  };
+  const createRes = await fetch(baseUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      warehouse_id: DATABRICKS_WAREHOUSE_ID,
+      statement: statement,
+      wait_timeout: "30s",
+    }),
+  });
+  if (!createRes.ok) {
+    const text = await createRes.text();
+    throw new Error(`Databricks SQL ${createRes.status}: ${text}`);
+  }
+  let data = await createRes.json();
+  if (data.status?.state === "FAILED") {
+    throw new Error(data.status.error?.message || "SQL failed");
+  }
+  let statementId = data.statement_id;
+  while (statementId && (data.status?.state === "PENDING" || data.status?.state === "RUNNING")) {
+    await new Promise((r) => setTimeout(r, 500));
+    const getRes = await fetch(`${baseUrl}/${statementId}`, { headers });
+    if (!getRes.ok) throw new Error(`Databricks SQL get ${getRes.status}`);
+    data = await getRes.json();
+    if (data.status?.state === "FAILED") {
+      throw new Error(data.status.error?.message || "SQL failed");
+    }
+  }
+  const manifest = data.manifest || data.result?.manifest;
+  const result = data.result;
+  const colDefs = manifest?.schema?.columns || result?.schema?.columns || [];
+  const columns = colDefs.length
+    ? colDefs.map((c) => (c.name || "").toLowerCase())
+    : (result?.data_array?.[0] ? [] : []);
+  const dataArray = result?.data_array || [];
+  const rows = dataArray.map((arr) => {
+    const obj = {};
+    columns.forEach((col, i) => {
+      obj[col] = arr[i];
+    });
+    return obj;
+  });
+  return { columns, rows };
+}
+
+const PRODUCTS_SQL = `
+SELECT product_id AS id, product_name AS name, COALESCE(sku, '') AS code
+FROM leticia_demo_automobilistic_1_catalog.default.products_br
+ORDER BY product_name
+`;
+
+const STORES_SQL = `
+SELECT store_id AS id, store_name AS name
+FROM leticia_demo_automobilistic_1_catalog.default.stores_br
+ORDER BY store_name
+`;
+
+app.get("/api/forecast", async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({
+        error: "Forecast não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token (KA_TOKEN).",
+      });
+    }
+    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
+    const sql = buildForecastSql(storeId, productId);
+    const { columns, rows } = await runDatabricksSql(sql);
+    return res.json({ columns, rows });
+  } catch (err) {
+    console.error("[forecast]", err);
+    return res.status(500).json({
+      error: err.message || "Erro ao consultar previsão.",
+    });
+  }
+});
+
+const filtersHandler = async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({
+        error: "Filtros não configurados. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token (KA_TOKEN).",
+      });
+    }
+    const [productsResult, storesResult] = await Promise.all([
+      runDatabricksSql(PRODUCTS_SQL),
+      runDatabricksSql(STORES_SQL),
+    ]);
+    const products = (productsResult.rows || []).map((r) => ({ id: r.id, name: r.name, code: r.code != null ? String(r.code) : "" }));
+    const stores = (storesResult.rows || []).map((r) => ({ id: r.id, name: r.name }));
+    return res.json({ products, stores });
+  } catch (err) {
+    console.error("[filters]", err);
+    return res.status(500).json({
+      error: err.message || "Erro ao carregar filtros.",
+    });
+  }
+};
+app.get("/api/filters", filtersHandler);
+app.get(/\/api\/filters\/?$/, filtersHandler);
+
 // ---------- Estático: raiz do projeto (index.html, js/, css/) ----------
 const projectRoot = path.join(__dirname, "..");
 app.use(express.static(projectRoot));

@@ -25,7 +25,7 @@
   });
 
   var hash = (location.hash || '#dashboard').slice(1);
-  if (['genie', 'dashboard', 'motorista', 'pac', 'centralizada'].indexOf(hash) !== -1) {
+  if (['dashboard', 'pac', 'motorista', 'genie'].indexOf(hash) !== -1) {
     switchPanel(hash);
   }
 })();
