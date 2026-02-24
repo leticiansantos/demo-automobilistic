@@ -263,6 +263,138 @@ const filtersHandler = async (req, res) => {
 app.get("/api/filters", filtersHandler);
 app.get(/\/api\/filters\/?$/, filtersHandler);
 
+// ---------- Chart: histórico (actual + forecast) + futuro (forecast) ----------
+function buildChartHistoricSql(storeId) {
+  const catalog = "leticia_demo_automobilistic_1_catalog.default";
+  const storeFilter =
+    storeId != null && storeId !== "" && !isNaN(Number(storeId))
+      ? ` WHERE store_id = ${Number(storeId)}`
+      : "";
+  return `
+SELECT CAST(year_month AS DATE) AS period, sales_monthly AS actual, prediction AS forecast
+FROM ${catalog}.sales_br_forecast_qty_by_store_monthly_historic
+${storeFilter}
+ORDER BY year_month
+`;
+}
+
+function buildChartFutureSql(storeId) {
+  const catalog = "leticia_demo_automobilistic_1_catalog.default";
+  const storeFilter =
+    storeId != null && storeId !== "" && !isNaN(Number(storeId))
+      ? ` AND store_id = ${Number(storeId)}`
+      : "";
+  return `
+SELECT CAST(year_month AS DATE) AS period, sales_forecast AS forecast
+FROM ${catalog}.sales_br_forecast_qty_by_store_monthly
+WHERE 1=1${storeFilter}
+ORDER BY year_month
+`;
+}
+
+const forecastChartHandler = async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({
+        error: "Chart não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token.",
+      });
+    }
+    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    const period = (req.query.period === "annual" || req.query.period === "anual") ? "annual" : "monthly";
+
+    const [historicResult, futureResult] = await Promise.all([
+      runDatabricksSql(buildChartHistoricSql(storeId)),
+      runDatabricksSql(buildChartFutureSql(storeId)),
+    ]);
+
+    let historicRows = historicResult.rows || [];
+    let futureRows = futureResult.rows || [];
+    if (!storeId && historicRows.length > 0) {
+      const byPeriod = {};
+      historicRows.forEach((r) => {
+        const key = r.period ? new Date(r.period).toISOString().slice(0, 7) : "";
+        if (!key) return;
+        if (!byPeriod[key]) byPeriod[key] = { period: key + "-01", actual: 0, forecast: 0 };
+        if (r.actual != null) byPeriod[key].actual += Number(r.actual);
+        if (r.forecast != null) byPeriod[key].forecast += Number(r.forecast);
+      });
+      historicRows = Object.values(byPeriod).sort((a, b) => new Date(a.period).getTime() - new Date(b.period).getTime());
+    }
+    if (!storeId && futureRows.length > 0) {
+      const byPeriod = {};
+      futureRows.forEach((r) => {
+        const key = r.period ? new Date(r.period).toISOString().slice(0, 7) : "";
+        if (!key) return;
+        if (!byPeriod[key]) byPeriod[key] = { period: key + "-01", forecast: 0 };
+        if (r.forecast != null) byPeriod[key].forecast += Number(r.forecast);
+      });
+      futureRows = Object.values(byPeriod).sort((a, b) => new Date(a.period).getTime() - new Date(b.period).getTime());
+    }
+
+    const maxHistoricPeriod = historicRows.length
+      ? historicRows.reduce((max, r) => {
+          const p = r.period ? new Date(r.period).getTime() : 0;
+          return p > max ? p : max;
+        }, 0)
+      : null;
+
+    const futureFiltered = maxHistoricPeriod
+      ? futureRows.filter((r) => r.period && new Date(r.period).getTime() > maxHistoricPeriod)
+      : futureRows;
+
+    const historicPoints = historicRows.map((r) => ({
+      period: r.period,
+      actual: r.actual != null ? Number(r.actual) : null,
+      forecast: r.forecast != null ? Number(r.forecast) : null,
+      isFuture: false,
+    }));
+
+    const futurePoints = futureFiltered.map((r) => ({
+      period: r.period,
+      actual: null,
+      forecast: r.forecast != null ? Number(r.forecast) : null,
+      isFuture: true,
+    }));
+
+    let data = [...historicPoints, ...futurePoints].sort(
+      (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime()
+    );
+
+    if (period === "annual") {
+      const byYear = {};
+      data.forEach((d) => {
+        const y = new Date(d.period).getFullYear();
+        if (!byYear[y]) byYear[y] = { period: String(y), actual: 0, forecast: 0, isFuture: d.isFuture, countActual: 0, countForecast: 0 };
+        if (d.actual != null) { byYear[y].actual += d.actual; byYear[y].countActual++; }
+        if (d.forecast != null) { byYear[y].forecast += d.forecast; byYear[y].countForecast++; }
+        byYear[y].isFuture = byYear[y].isFuture || d.isFuture;
+      });
+      data = Object.keys(byYear)
+        .sort()
+        .map((y) => ({
+          period: y,
+          actual: byYear[y].countActual ? byYear[y].actual : null,
+          forecast: byYear[y].countForecast ? byYear[y].forecast : null,
+          isFuture: byYear[y].isFuture,
+        }));
+    }
+
+    const cutoffIndex = data.findIndex((d) => d.isFuture);
+    const cutoffPeriod = cutoffIndex >= 0 && data[cutoffIndex] ? data[cutoffIndex].period : null;
+
+    return res.json({
+      data,
+      cutoffPeriod,
+      period: period === "annual" ? "annual" : "monthly",
+    });
+  } catch (err) {
+    console.error("[forecast-chart]", err);
+    return res.status(500).json({ error: err.message || "Erro ao carregar gráfico." });
+  }
+};
+app.get("/api/forecast-chart", forecastChartHandler);
+app.get(/\/api\/forecast-chart\/?$/, forecastChartHandler);
+
 // ---------- Estático: raiz do projeto (index.html, js/, css/) ----------
 const projectRoot = path.join(__dirname, "..");
 app.use(express.static(projectRoot));

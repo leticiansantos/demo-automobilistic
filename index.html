@@ -188,6 +188,23 @@
                     <p><strong>RMSE</strong> (Raiz do Erro Quadrático Médio): mede a precisão da previsão nas mesmas unidades dos dados.</p>
                     <p><strong>Bias</strong> (Viés): erro médio da previsão. Valor positivo = superestimativa; negativo = subestimativa.</p>
                   </div>
+                  <div class="forecast-chart-section">
+                    <div class="forecast-chart-header">
+                      <h3 class="forecast-chart-title">Análise fora da amostra</h3>
+                      <p class="forecast-chart-subtitle">Comparação de previsão ao longo do tempo</p>
+                      <div class="forecast-chart-period">
+                        <button type="button" class="forecast-chart-period-btn active" data-period="monthly" aria-pressed="true">Mensal</button>
+                        <button type="button" class="forecast-chart-period-btn" data-period="annual" aria-pressed="false">Anual</button>
+                      </div>
+                    </div>
+                    <div class="forecast-chart-canvas-wrap">
+                      <canvas id="forecast-chart-canvas" width="800" height="300"></canvas>
+                    </div>
+                    <div class="forecast-chart-legend">
+                      <span class="forecast-chart-legend-item"><span class="forecast-chart-legend-line forecast-chart-legend-actual"></span> Demanda real</span>
+                      <span class="forecast-chart-legend-item"><span class="forecast-chart-legend-line forecast-chart-legend-forecast"></span> Previsão (histórico e futuro)</span>
+                    </div>
+                  </div>
                   <div class="forecast-table-wrapper">
                     <table class="forecast-table" id="forecast-table">
                       <thead>
@@ -249,6 +266,23 @@
                     <p><strong>MAPE</strong> (Erro Percentual Absoluto Médio): quanto menor, melhor (&lt;5% excelente).</p>
                     <p><strong>RMSE</strong> (Raiz do Erro Quadrático Médio): mede a precisão da previsão nas mesmas unidades dos dados.</p>
                     <p><strong>Bias</strong> (Viés): erro médio da previsão. Valor positivo = superestimativa; negativo = subestimativa.</p>
+                  </div>
+                  <div class="forecast-chart-section">
+                    <div class="forecast-chart-header">
+                      <h3 class="forecast-chart-title">Análise fora da amostra</h3>
+                      <p class="forecast-chart-subtitle">Comparação de previsão ao longo do tempo</p>
+                      <div class="forecast-chart-period forecast-chart-period-produto">
+                        <button type="button" class="forecast-chart-period-btn active" data-period="monthly" aria-pressed="true">Mensal</button>
+                        <button type="button" class="forecast-chart-period-btn" data-period="annual" aria-pressed="false">Anual</button>
+                      </div>
+                    </div>
+                    <div class="forecast-chart-canvas-wrap">
+                      <canvas id="forecast-chart-canvas-produto" width="800" height="300"></canvas>
+                    </div>
+                    <div class="forecast-chart-legend">
+                      <span class="forecast-chart-legend-item"><span class="forecast-chart-legend-line forecast-chart-legend-actual"></span> Demanda real</span>
+                      <span class="forecast-chart-legend-item"><span class="forecast-chart-legend-line forecast-chart-legend-forecast"></span> Previsão (histórico e futuro)</span>
+                    </div>
                   </div>
                   <div class="forecast-table-wrapper">
                     <table class="forecast-table" id="forecast-table-produto">
@@ -357,7 +391,9 @@
   <script src="js/driver-view.js"></script>
   <script src="js/history.js"></script>
   <script src="js/aao-filters.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="js/forecast-table.js"></script>
+  <script src="js/forecast-chart.js"></script>
   <script src="js/posvenda-tabs.js"></script>
 </body>
 </html>

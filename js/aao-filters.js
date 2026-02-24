@@ -18,18 +18,30 @@
     return base.replace(/\/$/, "") + "/api/filters";
   }
 
+  var defaultStoreName = "Loja VW #4";
+
   function fillStoreSelect(list) {
     selectLoja.innerHTML = "";
     var opt0 = document.createElement("option");
     opt0.value = "";
     opt0.textContent = "Todas as lojas";
     selectLoja.appendChild(opt0);
-    (list || []).forEach(function (item) {
+    var storeList = list || [];
+    storeList.forEach(function (item) {
       var opt = document.createElement("option");
       opt.value = item.id != null ? String(item.id) : "";
       opt.textContent = item.name != null ? String(item.name) : "";
       selectLoja.appendChild(opt);
     });
+    var defaultStore = storeList.filter(function (s) {
+      var n = (s.name != null ? String(s.name) : "").trim();
+      return n.toLowerCase() === defaultStoreName.toLowerCase();
+    })[0];
+    if (defaultStore && defaultStore.id != null) {
+      selectLoja.value = String(defaultStore.id);
+      if (window.refreshForecastTable) window.refreshForecastTable();
+      if (window.refreshForecastChart) window.refreshForecastChart();
+    }
   }
 
   function productDisplay(p) {
