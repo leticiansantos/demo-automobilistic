@@ -123,21 +123,31 @@
             </div>
           </div>
           <div class="aao-metrics">
-            <div class="aao-metric-card aao-metric-placeholder">
-              <span class="aao-metric-label">Métrica 1</span>
-              <span class="aao-metric-soon">Em breve</span>
+            <div class="aao-metric-card aao-metric-tile aao-metric-1">
+              <div class="aao-metric-tile-header">
+                <span class="aao-metric-label">Estoque ótimo</span>
+                <span class="aao-metric-info" id="aao-metric-estoque-info" role="button" tabindex="0" aria-label="Como foi calculado">i</span>
+              </div>
+              <span class="aao-metric-value" id="aao-metric-estoque-otimo" aria-live="polite">–</span>
+              <div class="aao-metric-tooltip" id="aao-metric-estoque-tooltip" role="tooltip" aria-hidden="true">
+                Estoque ótimo = 1,2 × média mensal da previsão de demanda.
+              </div>
             </div>
-            <div class="aao-metric-card aao-metric-placeholder">
-              <span class="aao-metric-label">Métrica 2</span>
-              <span class="aao-metric-soon">Em breve</span>
+            <div class="aao-metric-card aao-metric-tile aao-metric-2">
+              <div class="aao-metric-tile-header">
+                <span class="aao-metric-label">Valor de estoque</span>
+                <span class="aao-metric-info" id="aao-metric-valor-info" role="button" tabindex="0" aria-label="Como foi calculado">i</span>
+              </div>
+              <span class="aao-metric-value aao-metric-value-currency" id="aao-metric-valor-estoque" aria-live="polite">–</span>
+              <div class="aao-metric-tooltip" id="aao-metric-valor-tooltip" role="tooltip" aria-hidden="true">
+                Valor de estoque = Estoque ótimo × Preço unitário. <span id="aao-metric-valor-tooltip-preco">Preço unitário: –</span>
+              </div>
             </div>
-            <div class="aao-metric-card aao-metric-placeholder">
-              <span class="aao-metric-label">Métrica 3</span>
-              <span class="aao-metric-soon">Em breve</span>
-            </div>
-            <div class="aao-metric-card aao-metric-placeholder">
-              <span class="aao-metric-label">Métrica 4</span>
-              <span class="aao-metric-soon">Em breve</span>
+            <div class="aao-metric-card aao-metric-tile aao-metric-3">
+              <div class="aao-metric-tile-header">
+                <span class="aao-metric-label">Estoque atual</span>
+              </div>
+              <span class="aao-metric-value" id="aao-metric-estoque-atual" aria-live="polite">–</span>
             </div>
           </div>
         </div>
@@ -291,14 +301,16 @@
                           <th class="sortable" data-sort="parceiro" scope="col">Loja</th>
                           <th class="sortable" data-sort="regiao" scope="col">Região</th>
                           <th class="sortable" data-sort="periodo" scope="col">Período</th>
+                          <th class="sortable" data-sort="product_name" scope="col">Produto</th>
                           <th class="sortable" data-sort="vendas" scope="col">Vendas (un.)</th>
                           <th class="sortable" data-sort="previsao" scope="col">Previsão</th>
                           <th class="sortable" data-sort="acuracia_pct" scope="col">Acurácia (%)</th>
+                          <th class="sortable" data-sort="risco_estoque" scope="col">Risco de Estoque</th>
                         </tr>
                       </thead>
                       <tbody id="forecast-tbody-produto">
                         <tr class="forecast-loading" id="forecast-loading-row-produto">
-                          <td colspan="6">Carregando…</td>
+                          <td colspan="8">Carregando…</td>
                         </tr>
                       </tbody>
                     </table>
@@ -391,6 +403,7 @@
   <script src="js/driver-view.js"></script>
   <script src="js/history.js"></script>
   <script src="js/aao-filters.js"></script>
+  <script src="js/aao-metrics.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="js/forecast-table.js"></script>
   <script src="js/forecast-chart.js"></script>

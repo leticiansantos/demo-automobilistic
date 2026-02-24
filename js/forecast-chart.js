@@ -10,15 +10,24 @@
   var chartInstanceProduto = null;
   var currentPeriod = "monthly";
 
-  function getChartApiUrl() {
+  function getChartBaseUrl() {
     var p = window.location.pathname || "/";
     var base = p.endsWith("/") ? p : p.replace(/\/[^/]*$/, "") || "/";
-    return base.replace(/\/$/, "") + "/api/forecast-chart";
+    return base.replace(/\/$/, "");
+  }
+
+  function getChartApiUrl() {
+    return getChartBaseUrl() + "/api/forecast-chart";
   }
 
   function getStoreId() {
     var el = document.getElementById("aao-filter-loja");
-    return el && el.value ? String(el.value).trim() : "";
+    return el && el.value != null ? String(el.value).trim() : "";
+  }
+
+  function getProductId() {
+    var el = document.getElementById("aao-filter-produto-id");
+    return el && el.value != null ? String(el.value).trim() : "";
   }
 
   var verticalLinePlugin = {
@@ -86,11 +95,11 @@
     var labels = data.map(function (d) { return formatLabel(d.period, isAnnual); });
     var actualData = data.map(function (d) { return d.actual; });
     var forecastData = data.map(function (d) { return d.forecast; });
-    var cutoffIndex = cutoffPeriod != null
-      ? data.findIndex(function (d) { return String(d.period) === String(cutoffPeriod); })
-      : -1;
-    if (cutoffIndex < 0 && data.some(function (d) { return d.isFuture; })) {
-      cutoffIndex = data.findIndex(function (d) { return d.isFuture; });
+    var cutoffIndex = data.findIndex(function (d) { return d.isFuture === true; });
+    if (cutoffIndex < 0 && cutoffPeriod != null) {
+      cutoffIndex = data.findIndex(function (d) {
+        return String(d.period) === String(cutoffPeriod) || periodToTime(d.period) === periodToTime(cutoffPeriod);
+      });
     }
 
     var chartPayload = { data: data, period: payload.period };
@@ -219,6 +228,164 @@
     }
   }
 
+  function renderOneChart(payload, which) {
+    if (typeof Chart === "undefined") return;
+    var config = buildChartConfig(payload);
+    if (which === "loja" && canvas) {
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(canvas, Object.assign({}, config));
+    } else if (which === "produto" && canvasProduto) {
+      if (chartInstanceProduto) chartInstanceProduto.destroy();
+      chartInstanceProduto = new Chart(canvasProduto, Object.assign({}, config));
+    }
+  }
+
+  function tableRowsToChartPayload(rows) {
+    if (!rows || rows.length === 0) return null;
+    var byKey = {};
+    rows.forEach(function (r) {
+      var p = r.periodo;
+      if (p == null) return;
+      var d = typeof p === "string" ? new Date(p) : p;
+      if (isNaN(d.getTime())) return;
+      var key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+      if (!byKey[key]) byKey[key] = { period: key + "-01", actual: 0, forecast: 0 };
+      var v = r.vendas != null ? Number(r.vendas) : 0;
+      var f = r.previsao != null ? Number(r.previsao) : 0;
+      byKey[key].actual += v;
+      byKey[key].forecast += f;
+    });
+    var keys = Object.keys(byKey).sort();
+    if (keys.length === 0) return null;
+    var data = keys.map(function (k) {
+      var x = byKey[k];
+      return { period: x.period, actual: x.actual, forecast: x.forecast, isFuture: false };
+    });
+    if (currentPeriod === "annual") {
+      var byYear = {};
+      data.forEach(function (d) {
+        var y = new Date(d.period).getFullYear();
+        if (!byYear[y]) byYear[y] = { period: String(y), actual: 0, forecast: 0 };
+        byYear[y].actual += d.actual;
+        byYear[y].forecast += d.forecast;
+      });
+      data = Object.keys(byYear).sort().map(function (y) {
+        var x = byYear[y];
+        return { period: x.period, actual: x.actual, forecast: x.forecast, isFuture: false };
+      });
+    }
+    return { data: data, cutoffPeriod: null, period: currentPeriod === "annual" ? "annual" : "monthly" };
+  }
+
+  function periodToTime(p) {
+    if (p == null) return 0;
+    var d = typeof p === "string" ? new Date(p) : p;
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  function normalizePeriodMonthly(p) {
+    if (p == null) return p;
+    var d = typeof p === "string" ? new Date(p) : p;
+    if (isNaN(d.getTime())) return p;
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    return y + "-" + m + "-01";
+  }
+
+  function aggregateFutureByYear(futurePoints) {
+    var byYear = {};
+    futurePoints.forEach(function (d) {
+      var y = new Date(d.period).getFullYear();
+      if (!byYear[y]) byYear[y] = { period: String(y), forecast: 0 };
+      if (d.forecast != null) byYear[y].forecast += d.forecast;
+    });
+    return Object.keys(byYear).sort().map(function (y) {
+      return { period: byYear[y].period, actual: null, forecast: byYear[y].forecast, isFuture: true };
+    });
+  }
+
+  function fetchFutureLoja() {
+    var storeId = getStoreId();
+    var params = ["period=" + (currentPeriod === "annual" ? "annual" : "monthly")];
+    if (storeId) params.push("store_id=" + encodeURIComponent(storeId));
+    var url = getChartApiUrl() + "?" + params.join("&");
+    return fetch(url).then(function (res) {
+      if (!res.ok) return { data: [] };
+      return res.json();
+    }).then(function (json) {
+      var list = (json.data || []).filter(function (d) { return d.isFuture; });
+      return list.map(function (d) { return { period: d.period, actual: null, forecast: d.forecast, isFuture: true }; });
+    }).catch(function () { return []; });
+  }
+
+  function fetchChartByProduct() {
+    var storeId = getStoreId();
+    var productId = getProductId();
+    var params = ["period=" + (currentPeriod === "annual" ? "annual" : "monthly")];
+    if (storeId) params.push("store_id=" + encodeURIComponent(storeId));
+    if (productId) params.push("product_id=" + encodeURIComponent(productId));
+    var url = getChartBaseUrl() + "/api/forecast-chart-by-product?" + params.join("&");
+    return fetch(url).then(function (res) {
+      if (!res.ok) return null;
+      return res.json();
+    }).then(function (json) {
+      if (!json || !json.data || !json.data.length) return null;
+      return {
+        data: json.data,
+        cutoffPeriod: json.cutoffPeriod || null,
+        period: json.period || (currentPeriod === "annual" ? "annual" : "monthly"),
+      };
+    }).catch(function () { return null; });
+  }
+
+  function updateForecastChartFromTableData(source, rows) {
+    if (source === "produto") {
+      fetchChartByProduct().then(function (payload) {
+        if (payload && payload.data.length) {
+          renderOneChart(payload, "produto");
+        } else {
+          if (chartInstanceProduto) {
+            chartInstanceProduto.destroy();
+            chartInstanceProduto = null;
+          }
+        }
+      });
+      return;
+    }
+
+    if (source !== "loja" || !rows || rows.length === 0) {
+      return;
+    }
+    var payload = tableRowsToChartPayload(rows);
+    var historicData = (payload && payload.data) ? payload.data : [];
+
+    function mergeAndRender(futurePoints) {
+      var combined = historicData.length || futurePoints.length
+        ? (historicData.concat(futurePoints)).sort(function (a, b) { return periodToTime(a.period) - periodToTime(b.period); })
+        : [];
+      var cutoffPeriod = null;
+      var cutoffIdx = combined.findIndex(function (d) { return d.isFuture; });
+      if (cutoffIdx >= 0 && combined[cutoffIdx]) cutoffPeriod = combined[cutoffIdx].period;
+      var finalPayload = {
+        data: combined,
+        cutoffPeriod: cutoffPeriod,
+        period: currentPeriod === "annual" ? "annual" : "monthly",
+      };
+      if (combined.length) {
+        renderOneChart(finalPayload, "loja");
+      } else {
+        if (chartInstance) {
+          chartInstance.destroy();
+          chartInstance = null;
+        }
+      }
+    }
+
+    fetchFutureLoja().then(mergeAndRender);
+  }
+
+  window.updateForecastChartFromTableData = updateForecastChartFromTableData;
+
   function loadChart() {
     var url = getChartApiUrl();
     var storeId = getStoreId();
@@ -250,7 +417,13 @@
       btn.classList.toggle("active", isActive);
       btn.setAttribute("aria-pressed", isActive ? "true" : "false");
     });
-    loadChart();
+    var rows = typeof window.getForecastTableRows === "function" ? window.getForecastTableRows() : null;
+    if (rows) {
+      updateForecastChartFromTableData("loja", rows.loja);
+      updateForecastChartFromTableData("produto", rows.produto);
+    } else {
+      loadChart();
+    }
   }
 
   document.querySelectorAll(".forecast-chart-period-btn").forEach(function (btn) {
@@ -259,15 +432,22 @@
     });
   });
 
-  window.refreshForecastChart = loadChart;
-
-  var storeSelect = document.getElementById("aao-filter-loja");
-  if (storeSelect) storeSelect.addEventListener("change", loadChart);
+  window.refreshForecastChart = function () {
+    var rows = typeof window.getForecastTableRows === "function" ? window.getForecastTableRows() : null;
+    if (rows) {
+      updateForecastChartFromTableData("loja", rows.loja);
+      updateForecastChartFromTableData("produto", rows.produto);
+    } else {
+      loadChart();
+    }
+  };
 
   function onPanelVisible() {
     var panel = document.getElementById("panel-pac");
     if (!panel || !panel.classList.contains("active")) return;
-    if (typeof Chart !== "undefined") loadChart();
+    if (typeof Chart !== "undefined" && typeof window.refreshForecastTable === "function") {
+      window.refreshForecastTable();
+    }
   }
 
   if (document.readyState === "loading") {
@@ -280,6 +460,6 @@
   }
 
   document.querySelector("a[data-panel=\"pac\"]") && document.querySelector("a[data-panel=\"pac\"]").addEventListener("click", function () {
-    setTimeout(function () { if (window.refreshForecastChart) window.refreshForecastChart(); }, 200);
+    setTimeout(function () { if (window.refreshForecastTable) window.refreshForecastTable(); }, 200);
   });
 })();

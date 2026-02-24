@@ -133,10 +133,12 @@ function isSqlConfigured() {
 
 function buildForecastSql(storeId, productId) {
   const catalog = "leticia_demo_automobilistic_1_catalog.default";
+  const storeIdNum =
+    storeId != null && storeId !== ""
+      ? parseInt(String(storeId).trim(), 10)
+      : NaN;
   const storeFilter =
-    storeId != null && storeId !== "" && !isNaN(Number(storeId))
-      ? ` AND h.store_id = ${Number(storeId)}`
-      : "";
+    !isNaN(storeIdNum) ? ` AND h.store_id = ${storeIdNum}` : "";
   return `
 SELECT
   s.store_name AS parceiro,
@@ -154,6 +156,48 @@ LEFT JOIN ${catalog}.stores_br s ON h.store_id = s.store_id
 WHERE 1=1${storeFilter}
 ORDER BY h.year_month DESC, s.store_name
 LIMIT 100
+`;
+}
+
+const catalogProduct = "leticia_demo_automobilistic_1_catalog.default";
+
+function buildForecastByProductSql(storeId, productId) {
+  const storeFilter =
+    storeId != null && storeId !== "" && !isNaN(Number(storeId))
+      ? ` AND h.store_id = ${Number(storeId)}`
+      : "";
+  const productFilter =
+    productId != null && productId !== "" && !isNaN(Number(productId))
+      ? ` AND h.product_id = ${Number(productId)}`
+      : "";
+  return `
+SELECT
+  s.store_name AS parceiro,
+  COALESCE(s.region, '') AS regiao,
+  CAST(h.year_month AS DATE) AS periodo,
+  h.product_id AS product_id,
+  COALESCE(p.product_name, '') AS product_name,
+  COALESCE(p.sku, '') AS product_sku,
+  COALESCE(CAST(h.sales_monthly AS DOUBLE), 0) AS vendas,
+  COALESCE(CAST(h.prediction AS DOUBLE), 0) AS previsao,
+  CASE
+    WHEN COALESCE(h.sales_monthly, 0) > 0
+    THEN ROUND(100.0 * COALESCE(h.prediction, 0) / h.sales_monthly, 1)
+    ELSE NULL
+  END AS acuracia_pct,
+  CASE
+    WHEN COALESCE(h.sales_monthly, 0) = 0 THEN 'medio'
+    WHEN h.prediction IS NULL THEN 'medio'
+    WHEN (h.prediction / h.sales_monthly) > 1.2 THEN 'alto'
+    WHEN (h.prediction / h.sales_monthly) < 0.8 THEN 'baixo'
+    ELSE 'medio'
+  END AS risco_estoque
+FROM ${catalogProduct}.sales_br_forecast_by_product_store_monthly_historic h
+LEFT JOIN ${catalogProduct}.stores_br s ON h.store_id = s.store_id
+LEFT JOIN ${catalogProduct}.products_br p ON h.product_id = p.product_id
+WHERE 1=1${storeFilter}${productFilter}
+ORDER BY h.year_month DESC, s.store_name, p.product_name, h.product_id
+LIMIT 500
 `;
 }
 
@@ -239,6 +283,26 @@ app.get("/api/forecast", async (req, res) => {
   }
 });
 
+app.get("/api/forecast-by-product", async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({
+        error: "Forecast por produto não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token.",
+      });
+    }
+    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
+    const sql = buildForecastByProductSql(storeId, productId);
+    const { rows } = await runDatabricksSql(sql);
+    return res.json({ rows: rows || [] });
+  } catch (err) {
+    console.error("[forecast-by-product]", err);
+    return res.status(500).json({
+      error: err.message || "Erro ao consultar previsão por produto.",
+    });
+  }
+});
+
 const filtersHandler = async (req, res) => {
   try {
     if (!isSqlConfigured()) {
@@ -262,6 +326,88 @@ const filtersHandler = async (req, res) => {
 };
 app.get("/api/filters", filtersHandler);
 app.get(/\/api\/filters\/?$/, filtersHandler);
+
+// ---------- Métricas produto: estoque ótimo e valor de estoque ----------
+const catalogDefault = "leticia_demo_automobilistic_1_catalog.default";
+
+app.get("/api/metrics-product", async (req, res) => {
+  try {
+    const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
+    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+
+    if (!productId) {
+      return res.json({ estoque_otimo: null, valor_estoque: null, estoque_atual: null });
+    }
+
+    if (!isSqlConfigured()) {
+      return res.json({ estoque_otimo: null, valor_estoque: null, estoque_atual: null });
+    }
+
+    const storeFilterStock =
+      storeId && !isNaN(Number(storeId))
+        ? ` AND id_store = ${Number(storeId)}`
+        : "";
+
+    const storeFilterForecast =
+      storeId && !isNaN(Number(storeId)) ? ` AND f.store_id = ${Number(storeId)}` : "";
+
+    const [forecastResult, priceResult, stockResult] = await Promise.all([
+      runDatabricksSql(`
+SELECT
+  SUM(COALESCE(CAST(f.sales_forecast AS DOUBLE), 0)) AS soma_forecast,
+  COUNT(DISTINCT f.year_month) AS meses
+FROM ${catalogDefault}.sales_br_forecast_by_product_store_monthly f
+WHERE 1=1
+  ${storeFilterForecast}
+  AND f.product_id = ${Number(productId)}
+`),
+      runDatabricksSql(`
+SELECT COALESCE(CAST(price AS DOUBLE), 0) AS price
+FROM ${catalogDefault}.products_br
+WHERE product_id = ${Number(productId)}
+LIMIT 1
+`),
+      runDatabricksSql(`
+SELECT COALESCE(SUM(CAST(stock_quantity AS BIGINT)), 0) AS qtd
+FROM ${catalogDefault}.stock_br
+WHERE id_product = ${Number(productId)}${storeFilterStock}
+`).catch(() => ({ rows: [] })),
+    ]);
+
+    const row = (forecastResult.rows && forecastResult.rows[0]) || {};
+    const somaForecast = row.soma_forecast != null ? Number(row.soma_forecast) : null;
+    const meses = row.meses != null ? Number(row.meses) : 0;
+
+    let estoque_otimo = null;
+    if (somaForecast != null && meses > 0) {
+      const mediaMensal = somaForecast / meses;
+      estoque_otimo = Math.round(mediaMensal * 1.2);
+    }
+
+    const priceRow = (priceResult.rows && priceResult.rows[0]) || {};
+    const precoUnitario = priceRow.price != null ? Number(priceRow.price) : null;
+    const valor_estoque =
+      estoque_otimo != null && precoUnitario != null && !isNaN(estoque_otimo) && !isNaN(precoUnitario)
+        ? estoque_otimo * precoUnitario
+        : null;
+
+    const stockRow = (stockResult && stockResult.rows && stockResult.rows[0]) || {};
+    const estoque_atual =
+      stockRow.qtd != null && !isNaN(Number(stockRow.qtd)) ? Number(stockRow.qtd) : null;
+
+    return res.json({
+      estoque_otimo: estoque_otimo,
+      valor_estoque: valor_estoque,
+      preco_unitario: precoUnitario,
+      estoque_atual: estoque_atual,
+    });
+  } catch (err) {
+    console.error("[metrics-product]", err);
+    return res.status(500).json({
+      error: err.message || "Erro ao carregar métricas do produto.",
+    });
+  }
+});
 
 // ---------- Chart: histórico (actual + forecast) + futuro (forecast) ----------
 function buildChartHistoricSql(storeId) {
@@ -394,6 +540,157 @@ const forecastChartHandler = async (req, res) => {
 };
 app.get("/api/forecast-chart", forecastChartHandler);
 app.get(/\/api\/forecast-chart\/?$/, forecastChartHandler);
+
+// Tabelas para gráfico Por produto: histórico + previsão futura
+const TABLE_HISTORIC_BY_PRODUCT = "leticia_demo_automobilistic_1_catalog.default.sales_br_forecast_by_product_store_monthly_historic";
+const TABLE_FUTURE_BY_PRODUCT = "leticia_demo_automobilistic_1_catalog.default.sales_br_forecast_by_product_store_monthly";
+
+function buildChartHistoricByProductSql(storeId, productId) {
+  const storeFilter =
+    storeId != null && storeId !== "" && !isNaN(Number(storeId))
+      ? ` AND store_id = ${Number(storeId)}`
+      : "";
+  const productFilter =
+    productId != null && productId !== "" && !isNaN(Number(productId))
+      ? ` AND product_id = ${Number(productId)}`
+      : "";
+  return `
+SELECT CAST(year_month AS DATE) AS period,
+  SUM(COALESCE(CAST(sales_monthly AS DOUBLE), 0)) AS actual,
+  SUM(COALESCE(CAST(prediction AS DOUBLE), 0)) AS forecast
+FROM ${TABLE_HISTORIC_BY_PRODUCT}
+WHERE 1=1${storeFilter}${productFilter}
+GROUP BY CAST(year_month AS DATE)
+ORDER BY period
+`;
+}
+
+function buildChartFutureByProductSql(storeId, productId) {
+  const storeFilter =
+    storeId != null && storeId !== "" && !isNaN(Number(storeId))
+      ? ` AND store_id = ${Number(storeId)}`
+      : "";
+  const productFilter =
+    productId != null && productId !== "" && !isNaN(Number(productId))
+      ? ` AND product_id = ${Number(productId)}`
+      : "";
+  return `
+SELECT CAST(year_month AS DATE) AS period, SUM(COALESCE(CAST(sales_forecast AS DOUBLE), 0)) AS forecast
+FROM ${TABLE_FUTURE_BY_PRODUCT}
+WHERE 1=1${storeFilter}${productFilter}
+GROUP BY CAST(year_month AS DATE)
+ORDER BY period
+`;
+}
+
+function toPeriodStr(period) {
+  if (period == null) return period;
+  const d = new Date(period);
+  if (isNaN(d.getTime())) return period;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+const forecastChartByProductHandler = async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({
+        error: "Chart por produto não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token.",
+      });
+    }
+    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
+    const period = (req.query.period === "annual" || req.query.period === "anual") ? "annual" : "monthly";
+
+    const [historicResult, futureResult] = await Promise.all([
+      runDatabricksSql(buildChartHistoricByProductSql(storeId, productId)),
+      runDatabricksSql(buildChartFutureByProductSql(storeId, productId)),
+    ]);
+
+    const historicRows = historicResult.rows || [];
+    const futureRows = futureResult.rows || [];
+
+    const maxHistoricTime = historicRows.length
+      ? Math.max(...historicRows.map((r) => (r.period ? new Date(r.period).getTime() : 0)))
+      : 0;
+
+    const historicPoints = historicRows.map((r) => ({
+      period: toPeriodStr(r.period),
+      actual: r.actual != null ? Number(r.actual) : null,
+      forecast: r.forecast != null ? Number(r.forecast) : null,
+      isFuture: false,
+    }));
+
+    const futurePoints = futureRows
+      .filter((r) => r.period && new Date(r.period).getTime() > maxHistoricTime)
+      .map((r) => ({
+        period: toPeriodStr(r.period),
+        actual: null,
+        forecast: r.forecast != null ? Number(r.forecast) : null,
+        isFuture: true,
+      }));
+
+    let data = [...historicPoints, ...futurePoints].sort(
+      (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime()
+    );
+
+    if (period === "annual") {
+      const byYear = {};
+      data.forEach((d) => {
+        const y = new Date(d.period).getFullYear();
+        if (!byYear[y]) byYear[y] = { period: String(y), actual: 0, forecast: 0, isFuture: d.isFuture };
+        if (d.actual != null) byYear[y].actual += d.actual;
+        if (d.forecast != null) byYear[y].forecast += d.forecast;
+        byYear[y].isFuture = byYear[y].isFuture || d.isFuture;
+      });
+      data = Object.keys(byYear)
+        .sort()
+        .map((y) => ({
+          period: y,
+          actual: byYear[y].actual || null,
+          forecast: byYear[y].forecast != null ? byYear[y].forecast : null,
+          isFuture: byYear[y].isFuture,
+        }));
+    }
+
+    const cutoffIndex = data.findIndex((d) => d.isFuture);
+    const cutoffPeriod = cutoffIndex >= 0 && data[cutoffIndex] ? data[cutoffIndex].period : null;
+
+    return res.json({
+      data,
+      cutoffPeriod,
+      period: period === "annual" ? "annual" : "monthly",
+    });
+  } catch (err) {
+    console.error("[forecast-chart-by-product]", err);
+    return res.status(500).json({ error: err.message || "Erro ao carregar gráfico por produto." });
+  }
+};
+
+app.get("/api/forecast-chart-by-product", forecastChartByProductHandler);
+app.get(/\/api\/forecast-chart-by-product\/?$/, forecastChartByProductHandler);
+
+// Legado: só futuro (frontend pode usar o novo endpoint acima)
+app.get("/api/forecast-chart-future-by-product", async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({
+        error: "Chart futuro por produto não configurado. Defina DATABRICKS_HOST, DATABRICKS_WAREHOUSE_ID e token.",
+      });
+    }
+    const storeId = (req.query.store_id != null && req.query.store_id !== "") ? String(req.query.store_id).trim() : null;
+    const productId = (req.query.product_id != null && req.query.product_id !== "") ? String(req.query.product_id).trim() : null;
+    const sql = buildChartFutureByProductSql(storeId, productId);
+    const { rows } = await runDatabricksSql(sql);
+    const data = (rows || []).map((r) => ({
+      period: toPeriodStr(r.period),
+      forecast: r.forecast != null ? Number(r.forecast) : null,
+    }));
+    return res.json({ data });
+  } catch (err) {
+    console.error("[forecast-chart-future-by-product]", err);
+    return res.status(500).json({ error: err.message || "Erro ao carregar forecast futuro por produto." });
+  }
+});
 
 // ---------- Estático: raiz do projeto (index.html, js/, css/) ----------
 const projectRoot = path.join(__dirname, "..");

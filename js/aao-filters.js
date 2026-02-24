@@ -19,6 +19,20 @@
   }
 
   var defaultStoreName = "Loja VW #4";
+  var defaultProductCode = "SKU000003";
+
+  function applyDefaultProduct() {
+    var defaultProduct = (productsList || []).filter(function (p) {
+      var code = (p.code != null ? String(p.code) : "").trim().toUpperCase();
+      return code === defaultProductCode.toUpperCase();
+    })[0];
+    if (defaultProduct && defaultProduct.id != null) {
+      productInput.value = productDisplay(defaultProduct);
+      if (productIdHidden) productIdHidden.value = String(defaultProduct.id);
+      if (window.refreshForecastTable) window.refreshForecastTable();
+      if (window.updateMetricsProduct) window.updateMetricsProduct();
+    }
+  }
 
   function fillStoreSelect(list) {
     selectLoja.innerHTML = "";
@@ -40,7 +54,6 @@
     if (defaultStore && defaultStore.id != null) {
       selectLoja.value = String(defaultStore.id);
       if (window.refreshForecastTable) window.refreshForecastTable();
-      if (window.refreshForecastChart) window.refreshForecastChart();
     }
   }
 
@@ -93,6 +106,7 @@
         hideSuggestions();
         productInput.blur();
         if (window.refreshForecastTable) window.refreshForecastTable();
+        if (window.updateMetricsProduct) window.updateMetricsProduct();
       });
       productSuggestions.appendChild(div);
     });
@@ -122,7 +136,10 @@
   productInput.addEventListener("blur", function () {
     setTimeout(function () {
       hideSuggestions();
-      if (productInput.value.trim() === "" && window.refreshForecastTable) window.refreshForecastTable();
+      if (productInput.value.trim() === "") {
+        if (window.refreshForecastTable) window.refreshForecastTable();
+        if (window.updateMetricsProduct) window.updateMetricsProduct();
+      }
     }, 200);
   });
   productInput.addEventListener("keydown", function (e) {
@@ -139,6 +156,7 @@
     if (selectLoja) selectLoja.value = "";
     hideSuggestions();
     if (window.refreshForecastTable) window.refreshForecastTable();
+    if (window.updateMetricsProduct) window.updateMetricsProduct();
   }
 
   if (clearBtn) clearBtn.addEventListener("click", clearFilters);
@@ -156,6 +174,7 @@
         if (productIdHidden) productIdHidden.value = "";
         productInput.value = "";
         fillStoreSelect(data.stores || []);
+        applyDefaultProduct();
       })
       .catch(function () {
         productsList = [];

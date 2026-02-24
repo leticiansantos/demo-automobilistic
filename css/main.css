@@ -759,6 +759,125 @@ body {
   font-style: italic;
 }
 
+.aao-metric-tile {
+  min-height: 88px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 147, 208, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 33, 87, 0.06);
+}
+
+.aao-metric-tile .aao-metric-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--vw-navy);
+  opacity: 0.9;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.aao-metric-tile .aao-metric-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--vw-navy);
+  letter-spacing: -0.02em;
+}
+
+.aao-metric-tile.aao-metric-1 .aao-metric-value {
+  font-size: 1.25rem;
+}
+
+.aao-metric-value-currency {
+  color: var(--vw-cyan);
+}
+
+.aao-metric-1,
+.aao-metric-2,
+.aao-metric-3 {
+  position: relative;
+}
+
+.aao-metric-tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.aao-metric-tile-header .aao-metric-label {
+  margin-bottom: 0;
+}
+
+.aao-metric-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 147, 208, 0.2);
+  color: var(--vw-cyan);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-style: italic;
+  cursor: help;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.aao-metric-info:hover,
+.aao-metric-info:focus {
+  background: var(--vw-cyan);
+  color: var(--vw-white);
+  outline: none;
+}
+
+.aao-metric-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 6px;
+  padding: 10px 12px;
+  background: var(--vw-navy);
+  color: var(--vw-white);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.aao-metric-1:has(.aao-metric-info:hover) .aao-metric-tooltip,
+.aao-metric-1:has(.aao-metric-info:focus) .aao-metric-tooltip,
+.aao-metric-2:has(.aao-metric-info:hover) .aao-metric-tooltip,
+.aao-metric-2:has(.aao-metric-info:focus) .aao-metric-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.aao-metric-1 .aao-metric-tooltip {
+  left: 0;
+  right: auto;
+  min-width: 240px;
+  max-width: 320px;
+}
+
+.aao-metric-2 .aao-metric-tooltip {
+  left: 0;
+  right: auto;
+  min-width: 260px;
+  max-width: 320px;
+}
+
 /* Tabs abaixo do box Análises Avançadas e Otimização */
 .posvenda-tabs {
   flex: 1;
@@ -1207,6 +1326,30 @@ body {
 .forecast-table .num-positive {
   color: #00a651;
   font-weight: 500;
+}
+
+.forecast-risco-tile {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.forecast-risco-tile.risco-baixo {
+  background: rgba(0, 166, 81, 0.2);
+  color: #006b34;
+}
+
+.forecast-risco-tile.risco-medio {
+  background: rgba(255, 171, 0, 0.25);
+  color: #7a5a00;
+}
+
+.forecast-risco-tile.risco-alto {
+  background: rgba(213, 0, 0, 0.15);
+  color: #b71c1c;
 }
 
 .risk-badge {
