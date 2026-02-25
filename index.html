@@ -68,7 +68,10 @@
     <p class="welcome-msg">Bem-vindo, <strong id="welcome-name">Nome da Pessoa</strong></p>
     <div class="driver-id-search">
       <label for="driver-id-input">ID do Motorista</label>
-      <input type="text" id="driver-id-input" placeholder="Digite o ID do motorista para pesquisar na tabela" autocomplete="off">
+      <div class="driver-id-search-wrap">
+        <input type="text" id="driver-id-input" placeholder="Digite o ID do motorista (autocomplete)" autocomplete="off" aria-autocomplete="list" aria-controls="driver-id-suggestions" aria-expanded="false" aria-activedescendant="">
+        <div class="driver-id-suggestions" id="driver-id-suggestions" role="listbox" aria-hidden="true"></div>
+      </div>
       <button type="button" id="driver-search-btn" class="btn-search">Pesquisar</button>
     </div>
   </div>

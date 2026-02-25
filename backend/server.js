@@ -327,6 +327,109 @@ const filtersHandler = async (req, res) => {
 app.get("/api/filters", filtersHandler);
 app.get(/\/api\/filters\/?$/, filtersHandler);
 
+// ---------- Visão do Motorista: alertas_por_motorista ----------
+const TABLE_ALERTAS_MOTORISTA = "leticia_demo_automobilistic_1_catalog.default.alertas_por_motorista";
+const TABLE_VW_CLIENTES = "leticia_demo_automobilistic_1_catalog.default.vw_clientes";
+
+app.get("/api/alertas-motorista", async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({ error: "Databricks não configurado." });
+    }
+    const idMotorista = (req.query.id_motorista != null && req.query.id_motorista !== "")
+      ? String(req.query.id_motorista).trim()
+      : null;
+    const filter = idMotorista ? ` WHERE id_motorista = '${idMotorista.replace(/'/g, "''")}'` : "";
+    const sql = `
+SELECT id_motorista, id_item, titulo, ponto, top, \`left\`, arrow, estado, descricao, solucao
+FROM ${TABLE_ALERTAS_MOTORISTA}${filter}
+ORDER BY id_motorista, id_item
+`;
+    const result = await runDatabricksSql(sql);
+    const rows = (result.rows || []).map((r) => ({
+      id_motorista: r.id_motorista != null ? String(r.id_motorista) : "",
+      id_item: r.id_item != null ? String(r.id_item) : "",
+      titulo: r.titulo != null ? String(r.titulo) : "",
+      ponto: r.ponto != null ? String(r.ponto) : "",
+      top: r.top != null ? String(r.top) : "",
+      left: r.left != null ? String(r.left) : "",
+      arrow: r.arrow != null ? String(r.arrow) : "",
+      estado: r.estado != null ? String(r.estado) : "",
+      descricao: r.descricao != null ? String(r.descricao) : "",
+      solucao: r.solucao != null ? String(r.solucao) : "",
+    }));
+
+    let nome_cliente = null;
+    if (idMotorista) {
+      try {
+        const clienteResult = await runDatabricksSql(`
+SELECT nome FROM ${TABLE_VW_CLIENTES}
+WHERE id_motorista = '${idMotorista.replace(/'/g, "''")}'
+LIMIT 1
+`);
+        const firstRow = (clienteResult.rows || [])[0];
+        if (firstRow) {
+          const n = firstRow.nome != null ? String(firstRow.nome).trim() : (firstRow.nome_cliente != null ? String(firstRow.nome_cliente).trim() : "");
+          if (n !== "") nome_cliente = n;
+        }
+      } catch (errCliente) {
+        console.warn("[alertas-motorista] vw_clientes:", errCliente.message);
+      }
+    }
+
+    return res.json({ rows, id_motorista: idMotorista || null, nome_cliente: nome_cliente });
+  } catch (err) {
+    console.error("[alertas-motorista]", err);
+    return res.status(500).json({ error: err.message || "Erro ao carregar alertas." });
+  }
+});
+
+app.get("/api/alertas-motorista-ids", async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({ error: "Databricks não configurado." });
+    }
+    const q = (req.query.q != null && req.query.q !== "") ? String(req.query.q).trim() : "";
+    const safeQ = q.replace(/'/g, "''");
+    const filter = safeQ ? ` WHERE LOWER(TRIM(id_motorista)) LIKE CONCAT('%', LOWER(TRIM('${safeQ}')), '%')` : "";
+    const sql = `
+SELECT DISTINCT id_motorista
+FROM ${TABLE_ALERTAS_MOTORISTA}${filter}
+ORDER BY id_motorista
+LIMIT 20
+`;
+    const result = await runDatabricksSql(sql);
+    const ids = (result.rows || []).map((r) => (r.id_motorista != null ? String(r.id_motorista).trim() : "")).filter(Boolean);
+    return res.json({ ids });
+  } catch (err) {
+    console.error("[alertas-motorista-ids]", err);
+    return res.status(500).json({ ids: [] });
+  }
+});
+
+app.get("/api/alertas-motorista-item-ids", async (req, res) => {
+  try {
+    if (!isSqlConfigured()) {
+      return res.status(503).json({ error: "Databricks não configurado." });
+    }
+    const q = (req.query.q != null && req.query.q !== "") ? String(req.query.q).trim() : "";
+    const safeQ = q.replace(/'/g, "''");
+    const filter = safeQ ? ` WHERE LOWER(TRIM(id_item)) LIKE CONCAT('%', LOWER(TRIM('${safeQ}')), '%')` : "";
+    const sql = `
+SELECT DISTINCT id_item
+FROM ${TABLE_ALERTAS_MOTORISTA}${filter}
+ORDER BY id_item
+LIMIT 20
+`;
+    const result = await runDatabricksSql(sql);
+    const ids = (result.rows || []).map((r) => (r.id_item != null ? String(r.id_item).trim() : "")).filter(Boolean);
+    return res.json({ ids });
+  } catch (err) {
+    console.error("[alertas-motorista-item-ids]", err);
+    return res.status(500).json({ ids: [] });
+  }
+});
+
 // ---------- Métricas produto: estoque ótimo, valor de estoque ótimo, estoque atual, valor de estoque (base real) ----------
 // Estoque atual e valor de estoque real: stock_br (stock_quantity) + products_br (price). Loja padrão 4.
 const catalogDefault = "leticia_demo_automobilistic_1_catalog.default";

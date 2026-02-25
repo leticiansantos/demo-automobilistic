@@ -1,30 +1,10 @@
 /**
- * Visão do Motorista: pontos no carro, tabela de alertas, bandeira seguro para dirigir, hover, APIs window.
- * Usa dados mockados até a integração com Databricks.
+ * Visão do Motorista: pontos no carro, tabela de alertas, bandeira seguro para dirigir.
+ * Dados da tabela alertas_por_motorista (Databricks). Filtro por ID do motorista e autocomplete.
  */
 (function () {
-  // Dados mockados – substituídos pela integração Databricks (setDriverViewDataFromDatabricks / updateDriverViewFromDatabricks)
-var ITENS = [
-  { id: "1", titulo: "Check engine", descricao: "Luz de motor acesa. Indica que o sistema de diagnóstico identificou uma falha.", solucao: "Recomenda-se verificar o veículo em uma oficina autorizada e ler os códigos OBD2.", ponto: "motor", top: "50%", left: "18%", arrow: "bottom" },
-  { id: "2", titulo: "Motor e ignição", descricao: "Possível falha de ignição (misfire). Pode causar perda de potência e consumo elevado.", solucao: "Verificar velas, bobinas e sistema de combustível. Evitar acelerações fortes até a revisão.", ponto: "motor", top: "50%", left: "18%", arrow: "bottom" },
-  { id: "3", titulo: "Temperatura do motor", descricao: "Temperatura do motor elevada. Risco de superaquecimento.", solucao: "Parar com segurança, desligar o motor e verificar nível do líquido de arrefecimento e radiador.", ponto: "motor", top: "50%", left: "18%", arrow: "bottom" },
-  { id: "4", titulo: "Bateria e alternador", descricao: "Tensão da bateria baixa ou falha no sistema de carga.", solucao: "Verificar alternador, correia e bornes da bateria. Trocar bateria se necessário.", ponto: "eletrico", top: "54%", left: "25%", arrow: "right" },
-  { id: "5", titulo: "Sensores MAF/MAP", descricao: "Sensor de fluxo ou pressão de ar com leitura anômala.", solucao: "Verificar admissão de ar, mangueiras e limpar ou substituir o sensor conforme diagnóstico.", ponto: "sensores", top: "50%", left: "18%", arrow: "right" },
-  { id: "6", titulo: "Posição do acelerador", descricao: "Sensor do pedal/acelerador com comportamento irregular.", solucao: "Pode afetar resposta do motor. Verificar sensor e fiação em oficina.", ponto: "sensores", top: "65%", left: "38%", arrow: "top" },
-  { id: "7", titulo: "Sistema de combustível", descricao: "Sistema de combustível com anomalia ou consumo acima do esperado.", solucao: "Agendar verificação. Verificar filtro de combustível, bicos e pressão.", ponto: "combustivel", top: "52%", left: "76%", arrow: "top" },
-  { id: "8", titulo: "Transmissão automática", descricao: "Sistema de transmissão detectou irregularidade.", solucao: "Evitar esforços e agendar diagnóstico. Verificar fluido e sensores.", ponto: "transmissao", top: "65%", left: "38%", arrow: "top" },
-  { id: "9", titulo: "Emissões / Catalisador", descricao: "Eficiência do catalisador reduzida ou sonda lambda com problema.", solucao: "Verificar sistema de escapamento e sondas. Pode afetar consumo e emissões.", ponto: "emissoes", top: "64%", left: "87%", arrow: "left" },
-  { id: "10", titulo: "Sistema ABS/estabilidade", descricao: "Sistema de freios ou controle de estabilidade com falha.", solucao: "Dirigir com cautela e verificar sensores de roda e módulo ABS.", ponto: "freios", top: "70%", left: "78%", arrow: "top" },
-  { id: "11", titulo: "Airbag / segurança", descricao: "Sistema de airbag ou suplementar de segurança com falha.", solucao: "Verificar o veículo em oficina. Luz no painel indica necessidade de diagnóstico.", ponto: "airbag", top: "47%", left: "44%", arrow: "bottom" },
-  { id: "12", titulo: "Comunicação entre módulos", descricao: "Falha de comunicação entre módulos eletrônicos (CAN).", solucao: "Recomenda-se diagnóstico completo. Pode estar relacionado a bateria ou conectores.", ponto: "eletrico", top: "54%", left: "25%", arrow: "bottom" }
-];
-
-var statusPorId = {};
-ITENS.forEach(function (item) { statusPorId[item.id] = "ok"; });
-statusPorId["1"] = "crit";
-statusPorId["3"] = "warn";
-statusPorId["9"] = "crit";
-statusPorId["4"] = "warn";
+  var ITENS = [];
+  var statusPorId = {};
 
 function getStatusClass(s) {
   if (s === "crit") return "status-crit";
@@ -57,6 +37,7 @@ function renderCarPoints() {
   var container = document.getElementById("car-points");
   if (!container) return;
   container.innerHTML = "";
+  if (!ITENS.length) return;
 
   var posKey = function (item) {
     var p = getItemPosition(item);
@@ -120,6 +101,12 @@ function renderTable() {
   var tbody = document.getElementById("alerts-tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
+  if (!ITENS.length) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td colspan=\"4\">Digite o ID do motorista e clique em Pesquisar para carregar os alertas.</td>";
+    tbody.appendChild(tr);
+    return;
+  }
   ITENS.forEach(function (item) {
     var status = statusPorId[item.id] || "ok";
     var tr = document.createElement("tr");
@@ -142,6 +129,10 @@ function updateDriveSafetyFlag() {
   });
   flag.classList.remove("safe", "not-safe", "warn");
   var text = flag.querySelector(".drive-safety-text");
+  if (!ITENS.length) {
+    text.textContent = "Digite o ID do motorista e pesquise.";
+    return;
+  }
   if (hasCrit) {
     flag.classList.add("not-safe");
     text.textContent = "Não é seguro dirigir no momento";
@@ -203,6 +194,135 @@ renderCarPoints();
 renderTable();
 updateDriveSafetyFlag();
 
+function getBaseUrl() {
+  var p = window.location.pathname || "/";
+  var base = p.endsWith("/") ? p : p.replace(/\/[^/]*$/, "") || "/";
+  return base.replace(/\/$/, "");
+}
+
+function mapEstado(estado) {
+  if (estado == null || estado === "") return "ok";
+  var e = String(estado).toLowerCase();
+  if (e.indexOf("crit") !== -1 || e.indexOf("critico") !== -1) return "crit";
+  if (e.indexOf("warn") !== -1 || e.indexOf("aviso") !== -1) return "warn";
+  return "ok";
+}
+
+function loadAlertasForMotorista(idMotorista) {
+  var base = getBaseUrl();
+  var url = base + "/api/alertas-motorista";
+  if (idMotorista) url += "?id_motorista=" + encodeURIComponent(idMotorista);
+  var flag = document.getElementById("drive-safety-flag");
+  var textEl = flag && flag.querySelector(".drive-safety-text");
+  if (textEl) textEl.textContent = "Carregando…";
+  fetch(url)
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      if (!data || !data.rows) {
+        ITENS = [];
+        statusPorId = {};
+        window.setWelcomeUserName("");
+        renderCarPoints();
+        renderTable();
+        updateDriveSafetyFlag();
+        if (textEl) textEl.textContent = idMotorista ? "Nenhum alerta encontrado." : "Digite o ID do motorista e pesquise.";
+        return;
+      }
+      var idMotoristaResp = data.id_motorista || idMotorista || "";
+      var mapped = data.rows.map(function (r) {
+        var id = (r.id_item != null ? String(r.id_item) : "").trim();
+        var status = mapEstado(r.estado);
+        statusPorId[id] = status;
+        return {
+          id: id,
+          titulo: r.titulo != null ? String(r.titulo) : "",
+          descricao: r.descricao != null ? String(r.descricao) : "",
+          solucao: r.solucao != null ? String(r.solucao) : "",
+          status: status,
+          top: r.top,
+          left: r.left,
+          arrow: r.arrow,
+          ponto: r.ponto != null ? String(r.ponto) : ""
+        };
+      });
+      var nomeCliente = (data.nome_cliente != null && String(data.nome_cliente).trim() !== "")
+        ? String(data.nome_cliente).trim()
+        : (idMotoristaResp ? "Motorista " + idMotoristaResp : "");
+      window.setDriverViewDataFromDatabricks(mapped);
+      window.setWelcomeUserName(nomeCliente);
+    })
+    .catch(function () {
+      ITENS = [];
+      statusPorId = {};
+      renderCarPoints();
+      renderTable();
+      updateDriveSafetyFlag();
+      window.setWelcomeUserName("");
+      if (textEl) textEl.textContent = "Erro ao carregar alertas.";
+    });
+}
+
+function fetchMotoristaIds(q, callback) {
+  var base = getBaseUrl();
+  var url = base + "/api/alertas-motorista-ids";
+  if (q != null && String(q).trim() !== "") url += "?q=" + encodeURIComponent(String(q).trim());
+  fetch(url).then(function (res) { return res.ok ? res.json() : { ids: [] }; }).then(function (data) { callback(data.ids || []); }).catch(function () { callback([]); });
+}
+
+function showSuggestions(ids) {
+  var list = document.getElementById("driver-id-suggestions");
+  var input = document.getElementById("driver-id-input");
+  if (!list || !input) return;
+  list.innerHTML = "";
+  list.setAttribute("aria-hidden", "true");
+  if (!ids || ids.length === 0) return;
+  list.removeAttribute("aria-hidden");
+  input.setAttribute("aria-expanded", "true");
+  ids.forEach(function (id, idx) {
+    var div = document.createElement("div");
+    div.className = "driver-id-suggestion-item";
+    div.setAttribute("role", "option");
+    div.setAttribute("id", "driver-id-option-" + idx);
+    div.textContent = id;
+    div.addEventListener("click", function () {
+      input.value = id;
+      hideSuggestions();
+      triggerDriverSearch();
+    });
+    list.appendChild(div);
+  });
+}
+
+function hideSuggestions() {
+  var list = document.getElementById("driver-id-suggestions");
+  var input = document.getElementById("driver-id-input");
+  if (list) { list.innerHTML = ""; list.setAttribute("aria-hidden", "true"); }
+  if (input) { input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); }
+}
+
+function getHighlightedSuggestionIndex() {
+  var list = document.getElementById("driver-id-suggestions");
+  if (!list || list.getAttribute("aria-hidden") === "true") return -1;
+  var items = list.querySelectorAll(".driver-id-suggestion-item");
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].classList.contains("highlight")) return i;
+  }
+  return -1;
+}
+
+function setHighlightedSuggestion(index) {
+  var list = document.getElementById("driver-id-suggestions");
+  var input = document.getElementById("driver-id-input");
+  if (!list || !input) return;
+  var items = list.querySelectorAll(".driver-id-suggestion-item");
+  items.forEach(function (el, i) { el.classList.toggle("highlight", i === index); });
+  if (index >= 0 && index < items.length) {
+    input.setAttribute("aria-activedescendant", items[index].id);
+  } else {
+    input.removeAttribute("aria-activedescendant");
+  }
+}
+
 window.getDriverIdForSearch = function () {
   var el = document.getElementById("driver-id-input");
   return el ? el.value.trim() : "";
@@ -213,29 +333,82 @@ window.getDriverIdForSearch = function () {
     if (el) el.textContent = name != null && name !== "" ? String(name) : "Nome da Pessoa";
   };
 
-  // Inicialização com dados mockados até a integração Databricks
-  var MOCK_DRIVER_NAME = "Maria Silva";
-  var MOCK_DRIVER_ID = "MOT-2025-001";
-  window.setWelcomeUserName(MOCK_DRIVER_NAME);
   var driverIdInput = document.getElementById("driver-id-input");
   if (driverIdInput) {
-    driverIdInput.placeholder = "Ex.: " + MOCK_DRIVER_ID + " (dados mock)";
-    driverIdInput.value = MOCK_DRIVER_ID;
+    driverIdInput.placeholder = "Digite o ID do motorista (autocomplete)";
   }
 
   if (driverIdInput) {
     driverIdInput.addEventListener("input", function () {
-      if (window.onDriverIdSearchChange) window.onDriverIdSearchChange(window.getDriverIdForSearch());
+      var q = driverIdInput.value.trim();
+      if (q.length < 1) { hideSuggestions(); return; }
+      fetchMotoristaIds(q, showSuggestions);
+    });
+    driverIdInput.addEventListener("focus", function () {
+      var q = driverIdInput.value.trim();
+      fetchMotoristaIds(q, showSuggestions);
+    });
+    driverIdInput.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        hideSuggestions();
+        return;
+      }
+      var list = document.getElementById("driver-id-suggestions");
+      if (!list || list.getAttribute("aria-hidden") === "true") {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          triggerDriverSearch();
+        }
+        return;
+      }
+      var items = list.querySelectorAll(".driver-id-suggestion-item");
+      if (items.length === 0) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          triggerDriverSearch();
+        }
+        return;
+      }
+      var idx = getHighlightedSuggestionIndex();
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        var next = idx < 0 ? 0 : Math.min(idx + 1, items.length - 1);
+        setHighlightedSuggestion(next);
+        items[next].scrollIntoView({ block: "nearest" });
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        var prev = idx <= 0 ? items.length - 1 : Math.max(idx - 1, 0);
+        setHighlightedSuggestion(prev);
+        items[prev].scrollIntoView({ block: "nearest" });
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (idx >= 0 && idx < items.length) {
+          driverIdInput.value = items[idx].textContent;
+        }
+        hideSuggestions();
+        triggerDriverSearch();
+      }
     });
   }
+  document.addEventListener("click", function (e) {
+    var list = document.getElementById("driver-id-suggestions");
+    var input = document.getElementById("driver-id-input");
+    if (list && input && !list.contains(e.target) && !input.contains(e.target)) hideSuggestions();
+  });
 
 function triggerDriverSearch() {
   var id = window.getDriverIdForSearch();
-  if (window.onDriverSearch) {
-    window.onDriverSearch(id);
-  } else if (window.onDriverIdSearchChange) {
-    window.onDriverIdSearchChange(id);
+  if (!id) {
+    var flag = document.getElementById("drive-safety-flag");
+    var textEl = flag && flag.querySelector(".drive-safety-text");
+    if (textEl) textEl.textContent = "Digite o ID do motorista e pesquise.";
+    return;
   }
+  loadAlertasForMotorista(id);
   try {
     window.dispatchEvent(new CustomEvent("driverSearchRequested", { detail: { driverId: id } }));
   } catch (e) {}
@@ -244,16 +417,8 @@ function triggerDriverSearch() {
 var driverSearchBtn = document.getElementById("driver-search-btn");
 if (driverSearchBtn) {
   driverSearchBtn.addEventListener("click", function () {
+    hideSuggestions();
     triggerDriverSearch();
-    if (!window.onDriverSearch && !window.onDriverIdSearchChange) {
-      // Modo mock: dados já exibidos; opcionalmente poderia mostrar um toast
-    }
-  });
-}
-
-if (driverIdInput) {
-  driverIdInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") triggerDriverSearch();
   });
 }
 

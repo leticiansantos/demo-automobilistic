@@ -1589,6 +1589,47 @@ body {
   transform: scale(0.98);
 }
 
+.driver-id-search-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.driver-id-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--vw-white);
+  border: 1px solid rgba(0, 33, 87, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 33, 87, 0.15);
+  z-index: 100;
+}
+
+.driver-id-suggestion-item {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--vw-navy);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 33, 87, 0.06);
+}
+
+.driver-id-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.driver-id-suggestion-item:hover {
+  background: rgba(0, 147, 208, 0.1);
+}
+
+.driver-id-suggestion-item.highlight {
+  background: rgba(0, 147, 208, 0.15);
+}
+
+
 .driver-view-header-tiles {
   display: flex;
   align-items: center;
